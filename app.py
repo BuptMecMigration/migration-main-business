@@ -1,4 +1,7 @@
 from flask import Flask
+from  gevent.pywsgi import WSGIServer
+from gevent import monkey
+
 
 app = Flask(__name__)
 
@@ -9,4 +12,5 @@ def hello_world():
 
 
 if __name__ == '__main__':
-    app.run()
+    http_server = WSGIServer(('127.0.0.1', 80), app)
+    http_server.serve_forever()
