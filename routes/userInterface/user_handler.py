@@ -56,7 +56,7 @@ def user_job_handle():
 # 接口：/user/startMigration
 # 入参：userId, ip, port
 # 出参：Flag
-@user_interface.route('/user/startMigration', method=['POST'])
+@user_interface.route('/user/startMigration', methods=['POST'])
 def user_migration_handle():
 
     data = request.get_json()
@@ -79,7 +79,7 @@ def user_migration_handle():
 # 接口：/admin/addService
 # 入参：serviceId, num, mini_service
 # 出参：Flag
-@user_interface.route('/admin/addService', method=['POST'])
+@user_interface.route('/admin/addService', methods=['POST'])
 def admin_add_service():
 
     data = request.get_json()
@@ -95,4 +95,3 @@ def admin_add_service():
     # TODO
 
     return "service: %d is added now" % serviceId
-
