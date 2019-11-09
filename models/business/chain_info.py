@@ -13,3 +13,9 @@ class ChainInfo(object):
     #     "index_int(1)": "service_addr1"
     # }
     mini_service: dict
+
+    def __init__(self, num:int, mini_service: dict) -> None:
+        self.num = num
+        self.mini_service = mini_service
+
+
