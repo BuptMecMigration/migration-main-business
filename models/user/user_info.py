@@ -19,6 +19,10 @@ class UserToken(object):
     def __str__(self) -> str:
         return "the user's id is: %d, service is is: %d"%(self.user_id, self.service_id)
 
+    def __init__(self, serviceId, ip, port) -> None:
+        self.service_id = serviceId
+        self.addr = {'user_ip': ip, 'user_port': port}
+
 
 class UserBusiness(object):
     # 调用链相关信息
@@ -40,12 +44,27 @@ class UserBusiness(object):
     def set_mig_time(self, new_time: float):
         self.mig_begin = new_time
 
+    def __str__(self) -> str:
+        return "当前调用链位置：%d" % self.chain_offset
 
+
+# 服务所使用的真正实体
 class UserService(object):
+
+    # 用户相关token
     service_token: UserToken
+    # 调用链执行信息
     service_bus: UserBusiness
+    # 调用链基础信息
     service_chain: ChainInfo
 
-    def __init__(self) -> None:
-        super().__init__()
+    @property
+    def set_migration_info(self, user_business: UserBusiness) -> None:
+        self.service_bus = user_business
 
+    @property
+    def set_chain_info(self, chain_info: ChainInfo) -> None:
+        self.service_chain = chain_info
+
+    def __init__(self, user_token) -> None:
+        self.service_token = user_token
