@@ -10,24 +10,20 @@ def connect_redis():
 
 class RedisUtil(object):
 
-    redis_conn: redis.Redis
+    redis_conn: redis.Redis = connect_redis()
 
     @classmethod
     def get_redis_data(cls, key: str):
-        conn = connect_redis()
-        data = conn.get(key)
+        data = cls.redis_conn.get(key)
         return data
 
     @classmethod
     def set_redis_data(cls, key, value):
-        conn = connect_redis()
         data = value
-        conn.set(
+        cls.redis_conn.set(
             name=key,
             value=data,
             # 默认redis国企时间，不设置代表不过期
             # ex=Config.EXPIRES_TIME
         )
 
-    def __init__(self) -> None:
-        self.redis_conn = connect_redis()
