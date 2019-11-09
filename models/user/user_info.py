@@ -16,12 +16,12 @@ class UserToken(object):
     def get_addr(self):
         return dict(self.addr)
 
-    def __str__(self) -> str:
-        return "the user's id is: %d, service is is: %d"%(self.user_id, self.service_id)
-
     def __init__(self, serviceId, ip, port) -> None:
         self.service_id = serviceId
         self.addr = {'user_ip': ip, 'user_port': port}
+
+    def __str__(self) -> str:
+        return "the user's id is: %d, service is is: %d"%(self.user_id, self.service_id)
 
 
 class UserBusiness(object):

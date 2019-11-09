@@ -8,13 +8,14 @@ user_interface = Blueprint('user_interface', __name__)
 # 接口：/user/sendTask
 # 入参：serviceId, ip, port
 # 出参：userId
-@user_interface.route('/user/sendTask', methods=['GET'])
+@user_interface.route('/user/sendTask', methods=['POST'])
 def user_job_handle():
 
+    data = request.get_json()
     # 记录入参
-    serviceId = request.args['serviceID']
-    user_ip = request.args['ip']
-    user_port = request.data['port']
+    serviceId = data.get('serviceID')
+    user_ip = data.get('ip')
+    user_port = data('port')
 
     # 生成userTokenn
     user_token = UserToken(serviceId, user_ip, user_port)
