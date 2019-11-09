@@ -1,8 +1,11 @@
 from flask import jsonify, Blueprint, request
+import requests
 
+from common.main_url import MAIN_PROCESS_URL
 from common.utils.redis_utils import RedisUtil
+from common.utils.string_utils import StringUtils
 from models.business.chain_info import ChainInfo
-from models.user.user_info import UserToken
+from models.user.user_info import UserToken, UserService, UserBusiness
 
 user_interface = Blueprint('user_interface', __name__)
 
@@ -19,9 +22,6 @@ def user_job_handle():
     user_ip = data.get('ip')
     user_port = data('port')
 
-    # 初始化一个redis连接
-    redis_conn = RedisUtil
-
     # 生成userTokenn
     user_token = UserToken(serviceId, user_ip, user_port)
 
@@ -31,17 +31,50 @@ def user_job_handle():
     user_token.user_id = id
 
     # token存redis
+    RedisUtil.set_redis_data(user_token.user_id, user_token)
 
     # 根据serviceId获取redis中chainInfo并注入
-    chain_info = redis_conn.get_redis_data(serviceId)
+    # TODO
+    chain_data = RedisUtil.get_redis_data(serviceId)
+    chain_info = ChainInfo()
+
+    # 初始化调用链状态
+    # TODO 这里data传什么？最开始的时候
+    business_data = UserBusiness(False, 0, '')
+
+    # 封装UserService
+    user_service = UserService(user_token)
+    user_service.set_migration_info(business_data)
+    user_service.set_chain_info(chain_data)
+
+    # 向内部URL发送一个带有UserService信息的请求
+    url = chain_info.service_addr(StringUtils.get_miniservice_key(business_data.chain_offset))
+    req = requests.post(url, user_service)
+
+    return jsonify({"user_id": id, "redirect_result": req})
 
 
-    # 初始化调用链状态并开始服务
+# 接口：/user/startMigration
+# 入参：userId, ip, port
+# 出参：Flag
+@user_interface.route('/user/startMigration', method=['POST'])
+def user_migration_handle():
+
+    data = request.get_json()
+    userId = data.get('userId')
+    ip = data.get('ip')
+    port = data.get('port')
+
+    # 修改redis中用户的ip及port信息
     # TODO
 
+    # 将用户id存入检测名单队列，一旦发现进入队列，后续迁移处理信息部分UserBusiness的flag都变成True
+    # 并且交给迁移转发模块进行处理，不在本地进行处理
+    # TODO 这里目的集群的信息如何获取？
 
+    # 这里应该进行一个检测，发现一下是否迁移完成
 
-    return jsonify({"user_id", id})
+    return "Migration is finished, new ip: %s, new port: %d" % (ip, port)
 
 
 # 接口：/admin/addService
@@ -55,20 +88,12 @@ def admin_add_service():
     num = data.get('num')
     mini_service = data.get('mini_service')
 
-    # 初始化redis
-    redis_conn = RedisUtil
-
     # 数据服务存入redis
     new_chain_info = ChainInfo(num, mini_service)
     RedisUtil.set_redis_data(serviceId, new_chain_info)
 
-    # 可以加入reids操作成功与否判断条件
+    # 加入redis操作成功与否判断条件
     # TODO
 
     return "service: %d is added now" % serviceId
-
-
-
-
-
 

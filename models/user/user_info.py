@@ -29,7 +29,7 @@ class UserBusiness(object):
     is_migration: bool  # 迁移字段
     chain_offset: int  # 调用链位置
     data: str  # 传输数据
-    mig_begin: float  # 传输时间戳
+    mig_begin: float  # 迁移时间戳
 
     def __init__(self, is_migration, offset, data) -> None:
         self.is_migration = is_migration
@@ -40,7 +40,6 @@ class UserBusiness(object):
     def get_mig_time(self):
         return TimeUtils.timestamp2time(self.mig_begin)
 
-    @property
     def set_mig_time(self, new_time: float):
         self.mig_begin = new_time
 
@@ -58,13 +57,19 @@ class UserService(object):
     # 调用链基础信息
     service_chain: ChainInfo
 
-    @property
     def set_migration_info(self, user_business: UserBusiness) -> None:
         self.service_bus = user_business
 
-    @property
     def set_chain_info(self, chain_info: ChainInfo) -> None:
         self.service_chain = chain_info
+
+    @property
+    def get_migration_info(self):
+        return self.service_bus
+
+    @property
+    def get_chain_info(self):
+        return self.service_chain
 
     def __init__(self, user_token) -> None:
         self.service_token = user_token

@@ -14,8 +14,10 @@ class ChainInfo(object):
     # }
     mini_service: dict
 
+    @property
+    def service_addr(self, index: str):
+        return self.mini_service.get(index)
+
     def __init__(self, num:int, mini_service: dict) -> None:
         self.num = num
         self.mini_service = mini_service
-
-
