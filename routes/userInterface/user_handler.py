@@ -1,7 +1,6 @@
 from flask import jsonify, Blueprint, request
 import requests
 
-from common.main_url import MAIN_PROCESS_URL
 from common.utils.redis_utils import RedisUtil
 from common.utils.string_utils import StringUtils
 from models.business.chain_info import ChainInfo
@@ -22,7 +21,7 @@ def user_job_handle():
     user_ip = data.get('ip')
     user_port = data('port')
 
-    # 生成userTokenn
+    # 生成userToken
     user_token = UserToken(serviceId, user_ip, user_port)
 
     # 分配ID
@@ -34,8 +33,8 @@ def user_job_handle():
     RedisUtil.set_redis_data(user_token.user_id, user_token)
 
     # 根据serviceId获取redis中chainInfo并注入
-    # TODO
     chain_data = RedisUtil.get_redis_data(serviceId)
+    # TODO 对应
     chain_info = ChainInfo()
 
     # 初始化调用链状态
