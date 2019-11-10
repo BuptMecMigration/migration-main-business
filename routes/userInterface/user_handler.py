@@ -1,3 +1,5 @@
+import json
+
 from flask import jsonify, Blueprint, request
 import requests
 
@@ -33,7 +35,7 @@ def user_job_handle():
     RedisUtil.set_redis_data(user_token.user_id, user_token)
 
     # 根据serviceId获取redis中chainInfo并注入
-    chain_data = RedisUtil.get_redis_data(serviceId)
+    chain_data = RedisUtil.get_redis_data("serviceId_%d" % serviceId)
     # TODO 对应
     chain_info = ChainInfo()
 
@@ -47,7 +49,7 @@ def user_job_handle():
     user_service.set_chain_info(chain_data)
 
     # 向内部URL发送一个带有UserService信息的请求
-    url = chain_info.service_addr(StringUtils.get_miniservice_key(business_data.chain_offset))
+    url = chain_info.service_addr(business_data.chain_offset)
     req = requests.post(url, user_service)
 
     return jsonify({"user_id": id, "redirect_result": req})
@@ -83,15 +85,34 @@ def user_migration_handle():
 def admin_add_service():
 
     data = request.get_json()
-    serviceId = data.get('serviceID')
+    serviceId = data.get('serviceId')
     num = data.get('num')
     mini_service = data.get('mini_service')
 
     # 数据服务存入redis
     new_chain_info = ChainInfo(num, mini_service)
-    RedisUtil.set_redis_data(serviceId, new_chain_info)
-
-    # 加入redis操作成功与否判断条件
-    # TODO
+    RedisUtil.set_redis_data("serviceId_%d" % serviceId, StringUtils.class2json(new_chain_info))
 
     return "service: %d is added now" % serviceId
+
+
+# test_redis
+@user_interface.route('/test/redis_get', methods=['POST'])
+def test_redis_read():
+
+    data = request.get_json()
+    key = data.get('key')
+    res = RedisUtil.get_redis_data(key)
+    chain = StringUtils.json2class(res)
+    print(type(chain))
+    return "get: %s" % chain
+
+
+@user_interface.route('/test/redis_set', methods=['POST'])
+def test_redis_write():
+
+    data = request.get_json()
+    key = data.get('key')
+    val = data.get('val')
+    res = RedisUtil.set_redis_data(key, val)
+    return "set: %s" % res
