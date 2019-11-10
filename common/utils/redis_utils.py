@@ -5,7 +5,9 @@ from common.redis_config import REDIS_DB_URL
 
 
 def connect_redis():
-    return redis.Redis(REDIS_DB_URL)
+    return redis.Redis(host=REDIS_DB_URL.HOST.value, port=REDIS_DB_URL.PORT.value,
+                       password=REDIS_DB_URL.PASSWORD.value, db=REDIS_DB_URL.DB.value,
+                       decode_responses=True)
 
 
 class RedisUtil(object):
