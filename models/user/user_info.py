@@ -73,5 +73,7 @@ class UserService(object):
     def get_chain_info(self):
         return self.service_chain
 
-    def __init__(self, *,user_token) -> None:
-        self.service_token = user_token
+    def __init__(self, *, user_token) -> None:
+        self.service_token: UserToken = user_token
+        self.service_bus: UserBusiness = None
+        self.service_chain: ChainInfo = None
