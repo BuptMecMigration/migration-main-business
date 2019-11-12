@@ -89,7 +89,7 @@ def admin_add_service():
 
     # 数据服务存入redis
     new_chain_info = ChainInfo(num, mini_service)
-    RedisUtil.set_redis_data("serviceId_%d" % serviceId, StringUtils.class2json(new_chain_info))
+    RedisUtil.set_redis_data("serviceId_%d" % serviceId, new_chain_info)
 
     return "service: %d is added now" % serviceId
 
@@ -100,8 +100,7 @@ def test_redis_read():
 
     data = request.get_json()
     key = data.get('key')
-    res = RedisUtil.get_redis_data(key)
-    chain = StringUtils.json2class(res)
+    chain = RedisUtil.get_redis_data(key)
     print(type(chain))
     return "get: %s" % chain
 
