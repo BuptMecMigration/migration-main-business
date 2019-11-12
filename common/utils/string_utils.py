@@ -15,4 +15,3 @@ class StringUtils(object):
     @classmethod
     def get_miniservice_key(cls, offset: int) -> str:
         return "index_int(%d)" % offset
-

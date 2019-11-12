@@ -2,6 +2,7 @@
 import redis
 
 from common.redis_config import REDIS_DB_URL
+from common.utils.serialize import Serializer
 
 
 def connect_redis():
@@ -17,11 +18,11 @@ class RedisUtil(object):
     @classmethod
     def get_redis_data(cls, key: str):
         data = cls.redis_conn.get(key)
-        return data
+        return Serializer.deSerialize(data)
 
     @classmethod
     def set_redis_data(cls, key, value):
-        data = value
+        data = Serializer.serialize(value)
         cls.redis_conn.set(
             name=key,
             value=data,
