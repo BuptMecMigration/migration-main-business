@@ -8,7 +8,8 @@ class Serializer(object):
 
     @classmethod
     def toDict(cls, o: object) -> dict:
-        if not isinstance(o, (dict, list, tuple, str, int, float, bool, None)):
+        d = o
+        if not isinstance(o, (dict, list, tuple, str, int, float, bool)):
             d = {"serialized_tag_type": type(o).__name__,
                  "serialized_tag_data": o.__dict__}
             for k, v in d["serialized_tag_data"].items():

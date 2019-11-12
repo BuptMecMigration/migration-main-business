@@ -89,7 +89,7 @@ def admin_add_service():
 
     # 数据服务存入redis
     new_chain_info = ChainInfo(num, mini_service)
-    RedisUtil.set_redis_data("serviceId_%d" % serviceId, StringUtils.class2json(new_chain_info))
+    RedisUtil.set_redis_data("serviceId_%d" % serviceId, new_chain_info)
 
     return "service: %d is added now" % serviceId
 
