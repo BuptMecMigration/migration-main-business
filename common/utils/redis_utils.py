@@ -26,7 +26,7 @@ class RedisUtil(object):
         cls.redis_conn.set(
             name=key,
             value=data,
-            # 默认redis过期时间，不设置代表不过期
+            # 默认redis国企时间，不设置代表不过期
             # ex=Config.EXPIRES_TIME
         )
 

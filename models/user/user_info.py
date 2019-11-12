@@ -4,24 +4,25 @@ from models.business.chain_info import ChainInfo
 
 
 class UserToken(object):
-    # 用户的相关token
-    user_id: int
-    service_id: int
-    addr: {
-        "user_ip": str,
-        "user_port": str
-    }
-
+    ''' 用户的相关token
+        user_id: int
+        service_id: int
+        addr: {
+            "user_ip": str,
+            "user_port": str
+        }
+    '''
     @property
     def get_addr(self):
         return dict(self.addr)
 
-    def __init__(self, serviceId, ip, port) -> None:
+    def __init__(self,  *, ip, port, serviceId: int, user_id: int) -> None:
+        self.user_id = user_id
         self.service_id = serviceId
         self.addr = {'user_ip': ip, 'user_port': port}
 
     def __str__(self) -> str:
-        return "the user's id is: %d, service is is: %d"%(self.user_id, self.service_id)
+        return "the user's id is: %d, service is is: %d" % (self.user_id, self.service_id)
 
 
 class UserBusiness(object):
@@ -49,13 +50,14 @@ class UserBusiness(object):
 
 # 服务所使用的真正实体
 class UserService(object):
-
-    # 用户相关token
-    service_token: UserToken
-    # 调用链执行信息
-    service_bus: UserBusiness
-    # 调用链基础信息
-    service_chain: ChainInfo
+    '''
+        # 用户相关token
+        service_token: UserToken
+        # 调用链执行信息
+        service_bus: UserBusiness
+        # 调用链基础信息
+        service_chain: ChainInfo
+    '''
 
     def set_migration_info(self, user_business: UserBusiness) -> None:
         self.service_bus = user_business
@@ -71,5 +73,5 @@ class UserService(object):
     def get_chain_info(self):
         return self.service_chain
 
-    def __init__(self, user_token) -> None:
+    def __init__(self, *,user_token) -> None:
         self.service_token = user_token
