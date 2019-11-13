@@ -67,7 +67,8 @@ def user_migration_handle():
     # 修改redis中用户的ip及port信息
     # TODO
 
-    # 将用户id存入检测名单队列，一旦发现进入队列，后续迁移处理信息部分UserBusiness的flag都变成True
+    # 将用户id存入检测名单队列，一旦发现进入队列
+    # 后续迁移处理信息部分UserBusiness的flag都变成True
     # 并且交给迁移转发模块进行处理，不在本地进行处理
     # TODO 这里目的集群的信息如何获取？
 
@@ -100,8 +101,7 @@ def test_redis_read():
 
     data = request.get_json()
     key = data.get('key')
-    res = RedisUtil.get_redis_data(key)
-    chain = StringUtils.json2class(res)
+    chain = RedisUtil.get_redis_data(key)
     print(type(chain))
     return "get: %s" % chain
 

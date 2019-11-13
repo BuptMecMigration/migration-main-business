@@ -7,8 +7,9 @@ from common.utils.string_utils import StringUtils
 
 
 class ChainInfo(object):
-    # 总的微服务的数量
-    num: int
+    '''
+    总的微服务的数量
+    @ num: int
     # index->int: addr->str
     # service_addr 是 service的URI
     # eg: "mini_service": {
@@ -16,6 +17,7 @@ class ChainInfo(object):
     #     "index_int(1)": "service_addr1"
     # }
     mini_service: dict
+    '''
 
     @property
     def service_addr(self, index: int):
