@@ -1,6 +1,7 @@
 from flask import jsonify, Blueprint, request
 import requests
 
+from common.service.migration_service import Migration
 from common.utils.redis_utils import RedisUtil
 from common.utils.string_utils import StringUtils
 from models.business.chain_info import ChainInfo
@@ -33,9 +34,10 @@ def user_job_handle():
     RedisUtil.set_redis_data(user_token.user_id, user_token)
 
     # 根据serviceId获取redis中chainInfo并注入
+    # 这里的chain_data应该对应内容为一个Chain_Info类
     chain_data = RedisUtil.get_redis_data("serviceId_%d" % serviceId)
     # TODO 对应
-    chain_info = ChainInfo()
+    chain_info = ChainInfo(chain_data["num"], chain_data["mini_service"])
 
     # 初始化调用链状态
     # TODO 这里data传什么？最开始的时候
@@ -68,7 +70,9 @@ def user_migration_handle():
     # TODO
 
     # 将用户id存入检测名单队列，一旦发现进入队列
+    Migration.migration_list_add(userId)
     # 后续迁移处理信息部分UserBusiness的flag都变成True
+
     # 并且交给迁移转发模块进行处理，不在本地进行处理
     # TODO 这里目的集群的信息如何获取？
 
