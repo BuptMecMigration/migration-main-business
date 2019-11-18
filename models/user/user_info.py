@@ -4,14 +4,15 @@ from models.business.chain_info import ChainInfo
 
 
 class UserToken(object):
-    ''' 用户的相关token
+    """
+        用户的相关token
         user_id: int
         service_id: int
         addr: {
             "user_ip": str,
             "user_port": str
         }
-    '''
+    """
     @property
     def get_addr(self):
         return dict(self.addr)

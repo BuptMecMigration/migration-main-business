@@ -20,3 +20,4 @@ class Migration(object):
 
         # 將該id添加到對應的list里, 以便下一步檢查
         GLOBAL_MIGRATION_LIST.append(user_id)
+
