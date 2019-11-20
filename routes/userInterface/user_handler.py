@@ -1,9 +1,8 @@
 from flask import jsonify, Blueprint, request
 import requests
 
-from common.service.migration_service import Migration
 from common.utils.redis_utils import RedisUtil
-from common.utils.string_utils import StringUtils
+from common.utils.token import Token
 from models.business.chain_info import ChainInfo
 from models.user.user_info import UserToken, UserService, UserBusiness
 
@@ -11,7 +10,7 @@ user_interface = Blueprint('user_interface', __name__)
 
 
 # 接口：/user/sendTask
-# 入参：serviceId, ip, port
+# 入参：serviceId, ip, port, req_data
 # 出参：userId
 @user_interface.route('/user/sendTask', methods=['POST'])
 def user_job_handle():
@@ -21,13 +20,13 @@ def user_job_handle():
     serviceId = data.get('serviceID')
     user_ip = data.get('ip')
     user_port = data('port')
+    req_data = data('req_data')
 
     # 生成userToken
     user_token = UserToken(serviceId, user_ip, user_port)
 
     # 分配ID
-    # TODO
-    id = 0
+    id = Token.gen_service_token()
     user_token.user_id = id
 
     # token存redis
@@ -36,12 +35,10 @@ def user_job_handle():
     # 根据serviceId获取redis中chainInfo并注入
     # 这里的chain_data应该对应内容为一个Chain_Info类
     chain_data = RedisUtil.get_redis_data("serviceId_%d" % serviceId)
-    # TODO 对应
     chain_info = ChainInfo(chain_data["num"], chain_data["mini_service"])
 
     # 初始化调用链状态
-    # TODO 这里data传什么？最开始的时候
-    business_data = UserBusiness(False, 0, '')
+    business_data = UserBusiness(False, 0, req_data)
 
     # 封装UserService
     user_service = UserService(user_token)
@@ -67,7 +64,8 @@ def user_migration_handle():
     port = data.get('port')
 
     # 修改redis中用户的ip及port信息
-    # TODO
+    token = RedisUtil.get_redis_data(userId)
+    RedisUtil.set_redis_data(userId, UserToken(token["serviceID"], ip, port))
 
     # 将用户id存入检测名单队列，一旦发现进入队列
     Migration.migration_list_add(userId)
