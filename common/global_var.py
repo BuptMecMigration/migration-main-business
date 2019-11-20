@@ -26,6 +26,7 @@ class service_map(object):
         else:
             us_map = cls.__GLOBAL_MIGRATION_MAP[user_token]
             if service_id not in us_map:
+                cls.__migration_lock.release()
                 return False, None
             us=cls.__GLOBAL_MIGRATION_MAP[service_id]
             cls.__migration_lock.release()
@@ -41,6 +42,7 @@ class service_map(object):
         else:
             us_map = cls.__GLOBAL_USER_SERVICE_MAP[user_token]
             if service_id not in us_map:
+                cls.__user_service_lock.release()
                 return False, None
             us= cls.__GLOBAL_USER_SERVICE_MAP[service_id]
             cls.__user_service_lock.release()
@@ -74,20 +76,21 @@ class service_map(object):
     def set_migration_service(cls, us: UserService) -> bool:
         if type(us) is not UserService:
             raise TypeError
-        cls.__user_service_lock.acquire()
+        cls.__migration_lock.acquire()
         if us.service_token.user_id in cls.__GLOBAL_MIGRATION_MAP:
             # 当前service_id已经存入,不能再存,返回false
             if us.service_token.service_id in  cls.__GLOBAL_MIGRATION_MAP[us.service_token.user_id]:
+                cls.__migration_lock.release()
                 return False
             # 新存入一个,返回true    
             cls.__GLOBAL_MIGRATION_MAP[us.service_token.user_id][us.service_token.service_id]=us
-            cls.__user_service_lock.release()
+            cls.__migration_lock.release()
             return True
         else:
             # 新建map,存入对象
             cls.__GLOBAL_MIGRATION_MAP[us.service_token.user_id]={}
             cls.__GLOBAL_MIGRATION_MAP[us.service_token.user_id][us.service_token.service_id]=us
-            cls.__user_service_lock.release()
+            cls.__migration_lock.release()
             return True
 
     @classmethod
@@ -98,6 +101,7 @@ class service_map(object):
         if us.service_token.user_id in cls.__GLOBAL_USER_SERVICE_MAP:
             # 当前service_id已经存入,不能再存,返回false
             if us.service_token.service_id in  cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id]:
+                cls.__user_service_lock.release()
                 return False
             # 新存入一个,返回true    
             cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id][us.service_token.service_id]=us
@@ -109,3 +113,41 @@ class service_map(object):
             cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id][us.service_token.service_id]=us
             cls.__user_service_lock.release()
             return True
+
+    @classmethod
+    def remove_migration_service(cls, user_token: int,service_id:int) -> bool:
+        cls.__migration_lock.acquire()
+        if user_token not in cls.__GLOBAL_MIGRATION_MAP:
+            cls.__migration_lock.release()
+            return False
+        else:
+            # 当前service_id已经存入,不能再存,返回false
+            if service_id not in cls.__GLOBAL_MIGRATION_MAP[user_token]:
+                cls.__migration_lock.release()
+                return False
+            else:
+                del cls.__GLOBAL_MIGRATION_MAP[user_token][service_id]
+                if len(cls.__GLOBAL_MIGRATION_MAP[user_token])==0:
+                    del cls.__GLOBAL_MIGRATION_MAP[user_token]
+                
+                cls.__migration_lock.release()
+                return True
+
+    @classmethod
+    def remove_user_service(cls, user_token: int,service_id:int) -> bool:
+        cls.__user_service_lock.acquire()
+        if user_token not in cls.__GLOBAL_USER_SERVICE_MAP:
+            cls.__user_service_lock.release()
+            return False
+        else:
+            # 当前service_id已经存入,不能再存,返回false
+            if service_id not in cls.__GLOBAL_USER_SERVICE_MAP[user_token]:
+                cls.__user_service_lock.release()
+                return False
+            else:
+                del cls.__GLOBAL_USER_SERVICE_MAP[user_token][service_id]
+                if len(cls.__GLOBAL_USER_SERVICE_MAP[user_token])==0:
+                    del cls.__GLOBAL_USER_SERVICE_MAP[user_token]
+                
+                cls.__user_service_lock.release()
+                return True
