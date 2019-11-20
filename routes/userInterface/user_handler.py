@@ -64,7 +64,8 @@ def user_migration_handle():
     port = data.get('port')
 
     # 修改redis中用户的ip及port信息
-    # TODO
+    token = RedisUtil.get_redis_data(userId)
+    RedisUtil.set_redis_data(userId, UserToken(token["serviceID"], ip, port))
 
     # 将用户id存入检测名单队列，一旦发现进入队列
     Migration.migration_list_add(userId)
