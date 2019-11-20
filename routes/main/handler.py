@@ -1,9 +1,10 @@
 from flask import request
 import requests
+
+from common import global_var
 from models.business.chain_info import *
 from models.user.user_info import *
 from common.utils.logger import logger
-from common.global_var import global_var
 
 global_var.get_user_service()
 # TODO 传引用

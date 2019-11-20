@@ -18,7 +18,7 @@ class service_map(object):
 
     @classmethod
     # 如果 us不在map中,返回false,us为空
-    def get_migration_service(cls, user_token: int,service_id:int) -> (bool, UserService):
+    def get_migration_service(cls, user_token: int, service_id:int) -> (bool, UserService):
         cls.__migration_lock.acquire()
         if user_token not in cls.__GLOBAL_MIGRATION_MAP:
             cls.__migration_lock.release()
@@ -33,7 +33,7 @@ class service_map(object):
 
     @classmethod
     # 如果 us不在map中,返回false,us为空
-    def get_user_service(cls, user_token: int,service_id:int) -> (bool, UserService):
+    def get_user_service(cls, user_token: int, service_id: int) -> (bool, UserService):
         cls.__user_service_lock.acquire()
         if user_token not in cls.__GLOBAL_USER_SERVICE_MAP:
             cls.__user_service_lock.release()
@@ -97,15 +97,15 @@ class service_map(object):
         cls.__user_service_lock.acquire()
         if us.service_token.user_id in cls.__GLOBAL_USER_SERVICE_MAP:
             # 当前service_id已经存入,不能再存,返回false
-            if us.service_token.service_id in  cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id]:
+            if us.service_token.service_id in cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id]:
                 return False
             # 新存入一个,返回true    
-            cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id][us.service_token.service_id]=us
+            cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id][us.service_token.service_id] = us
             cls.__user_service_lock.release()
             return True
         else:
             # 新建map,存入对象
-            cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id]={}
-            cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id][us.service_token.service_id]=us
+            cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id] = {}
+            cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id][us.service_token.service_id] = us
             cls.__user_service_lock.release()
             return True
