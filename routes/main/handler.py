@@ -25,8 +25,9 @@ def handel_service(user_token: int,service_token: int):
         # 必须先处理完毕  
         us.lock_userService()         
         minServiceAddr,us_data = us.service_chain.mini_service[i],us.service_bus.data
-        res=requests.post(minServiceAddr, data=us_data)
         us.unlock_userService()
+        
+        res=requests.post(minServiceAddr, data=us_data)
 
         # 从json文件中中获取data传输过来的data
         if res.status_code == 200:
