@@ -1,8 +1,10 @@
 from flask import jsonify, Blueprint, request
 import requests
 
+from common.global_var import service_map
 from common.utils.redis_utils import RedisUtil
 from common.utils.token import Token
+from migration.migration_handler import migration_sender
 from models.business.chain_info import ChainInfo
 from models.user.user_info import UserToken, UserService, UserBusiness
 
@@ -53,13 +55,14 @@ def user_job_handle():
 
 
 # 接口：/user/startMigration
-# 入参：userId, ip, port
+# 入参：userId, serviceID, ip, port
 # 出参：Flag
 @user_interface.route('/user/startMigration', methods=['POST'])
 def user_migration_handle():
 
     data = request.get_json()
     userId = data.get('userId')
+    serviceId = data.get('serviceId')
     ip = data.get('ip')
     port = data.get('port')
 
@@ -67,16 +70,17 @@ def user_migration_handle():
     token = RedisUtil.get_redis_data(userId)
     RedisUtil.set_redis_data(userId, UserToken(token["serviceID"], ip, port))
 
-    # 将用户id存入检测名单队列，一旦发现进入队列
-    Migration.migration_list_add(userId)
     # 后续迁移处理信息部分UserBusiness的flag都变成True
-
+    returnField = service_map.get_user_service(userId, serviceId)
+    if not returnField[0]:
+        return "You service is not recorded"
+    service_map.set_user_service(returnField[1].setflag(True))
+    # TODO 这个map是否幂等写入
     # 并且交给迁移转发模块进行处理，不在本地进行处理
-    # TODO 这里目的集群的信息如何获取？
+    if migration_sender(userId, serviceId):
+        return "Operate migration process fail!"
 
-    # 这里应该进行一个检测，发现一下是否迁移完成
-
-    return "Migration is finished, new ip: %s, new port: %d" % (ip, port)
+    return "Migration is started, new ip: %s, new port: %d" % (ip, port)
 
 
 # 接口：/admin/addService
