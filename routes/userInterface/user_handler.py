@@ -74,7 +74,6 @@ def user_migration_handle():
     returnField = service_map.get_user_service(userId, serviceId)
     if not returnField[0]:
         return "You service is not recorded"
-    service_map.set_user_service(returnField[1].setflag(True))
     # TODO 这个map是否幂等写入
     # 并且交给迁移转发模块进行处理，不在本地进行处理
     if migration_sender(userId, serviceId):

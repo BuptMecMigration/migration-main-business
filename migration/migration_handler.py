@@ -16,8 +16,12 @@ TODO：采用tcp是否很上一个模块功能可以复用？采用rest如何读
 import binascii
 import json
 import socket
+import socketserver
+import threading
+import time
 
-#from common.global_var import service_map
+from common.code import TRIES_MAXIMUM
+from common.global_var import service_map
 from common.utils.redis_utils import RedisUtil
 from common.utils.serialize import Serializer
 
@@ -29,26 +33,24 @@ from common.utils.serialize import Serializer
 @param: userId：用户id
 @return：success | fail
 """
-def migration_sender(userId: int, serviceId: int) -> bool:
+def migration_sender(userId: int, serviceId: int, ip: int) -> bool:
+
     # 处理用户全局map状态
     # 判断是否存在
-
     return_field = service_map.get_user_service(userId, serviceId)
 
     if not return_field[0]:
         # TODO 输出错误日志
         return False
+    us = return_field[1]
+    service_map.set_user_service(return_field[1].setflag(True))
 
-    # 调换user_service的位置
-    # service_map.remove_migration_service(userId, serviceId)
-    # service_map.set_migration_service(return_field[1])
+    # 读取另一节点上注册过的处理接口（包括ip和端口）
+    port = get_target_peer(ip)
 
-    # 转发用户后续请求，并调用相关状态
-
-        # 读取另一节点上注册过的处理接口（包括ip和端口）
-
-    # 如何获取一个分布式节点的rpc服务过程是难点？
-    # @TODO
+    # 调用TCP模块，转发用户后续请求
+    if not port_send(us, ip, port):
+        return False
 
     return True
 
@@ -58,14 +60,20 @@ def migration_sender(userId: int, serviceId: int) -> bool:
 @param: None
 @return：Message
 """
-def migration_receiver():
+def migration_receiver(port: int):
+
+    def start_worker(workers, worker):
+        workers.append(threading.Thread(target=worker, daemon=True))
+        workers[-1].start()
+
     # 将监听端口注册到某个地方
-
+    workers = []
+    server = ThreadedTCPServer(('0.0.0.0', port), TCPHandler)
     # 开始监听过程
-
+    start_worker(workers, server.serve_forever)
     # 接收用户请求并进行处理
-
     # 在本地map调整相关的用户状态，并向业务模块转发相应的操作
+    # 这部分操作写在TCPserver的handler里
     return
 
 
@@ -74,20 +82,24 @@ def migration_receiver():
 @param: None
 @return: Msg
 """
-def port_send(message):
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect('localhost', 9000)
-            s.sendall(Serializer.encode_socket_data(message))
-            msg_len = int(binascii.hexlify(s.recv(4) or b'\x00'), 16)
-            data = b''
-            while msg_len > 0:
-                tdat = s.recv(1024)
-                data += tdat
-                msg_len -= len(tdat)
-        s.close()
-    except Exception as e:
-        print()
+def port_send(message, ip: int , port: int) -> bool:
+    tries_left = int(TRIES_MAXIMUM)
+
+    if tries_left <= 0:
+        # 日志模块写入
+        return False
+
+    while tries_left > 0:
+        try:
+            with socket.create_connection(ip, port, timeout=1) as s:
+                s.sendall(Serializer.encode_socket_data(message))
+        except Exception as e:
+            tries_left -= 1
+            time.sleep(1)
+            if tries_left <= 0:
+                return False
+        else:
+            return True
 
 
 """
@@ -97,7 +109,7 @@ def port_send(message):
 """
 def port_receive(req, gs)-> object:
     data = b''
-    # Our protocol is: first 4 bytes signify msg length.
+    # 前4 Bytes代表数据长度
     msg_len = int(binascii.hexlify(req.recv(4) or b'\x00'), 16)
     while msg_len > 0:
         tdat = req.recv(1024)
@@ -111,7 +123,7 @@ def port_receive(req, gs)-> object:
 @param: 某节点IP
 @return: (ip, port)
 """
-def get_target_peer(ip: str) -> str:
+def get_target_peer(ip: str) -> int:
     peers = json.loads(RedisUtil.get_redis_data("peers"))
     for peer_ip in peers.key():
         if peer_ip == ip:
@@ -129,6 +141,36 @@ def add_server_address(ip:str, port:int):
     dict = json.loads(peer_data)
     dict[ip]=port
     RedisUtil.set_redis_data("peers", json.dumps(dict))
+
+
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    def __init__(self, server_address, RequestHandlerClass):
+        socketserver.TCPServer.__init__(self, server_address, RequestHandlerClass)
+
+
+"""
+重写TCP_handler处理相关逻辑
+"""
+class TCPHandler(socketserver.BaseRequestHandler):
+    def handle(self):
+        # 接收相关消息恢复处理, gs为相关map处理过程
+        gs = dict()
+        try:
+            message = Serializer.read_all_from_socket(self.request, gs)
+        except Exception as e:
+            return
+
+        if message.code == 0:
+            # 处理us信息
+            us = message.body
+            service_map.set_user_service(us)
+        if message.code == 1:
+            # 处理后续转发消息, 需要接口
+            return
+        # 关闭接口
+        # self.request.shutdown(2)
+        # self.request.close()
+
 
 
 if __name__ == '__main__':

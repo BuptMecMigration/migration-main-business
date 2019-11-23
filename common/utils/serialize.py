@@ -96,3 +96,16 @@ class Serializer(object):
 
         to_send = cls.to_serialize(data).encode()
         return int_to_8bytes(len(to_send)) + to_send
+
+    @classmethod
+    def read_all_from_socket(cls, req, gs) -> object:
+        data = b''
+        # Our protocol is: first 4 bytes signify msg length.
+        msg_len = int(binascii.hexlify(req.recv(4) or b'\x00'), 16)
+
+        while msg_len > 0:
+            tdat = req.recv(1024)
+            data += tdat
+            msg_len -= len(tdat)
+
+        return cls.to_deserialize(data.decode(), gs) if data else None
