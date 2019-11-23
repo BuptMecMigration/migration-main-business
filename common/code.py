@@ -20,3 +20,9 @@ CODE_MSG_MAP = {
     AUTHORIZATION_ERROR: '认证授权错误',
     UNKNOWN_ERROR: "未知错误"
 }
+
+# 全局migration receiver接收的监听端口
+MIGRATION_SERVICE_LISTEN_IP = 'localhost'
+MIGRATION_SERVICE_LISTEN_PORT = 9900
+# tcp传输重试次数
+TRIES_MAXIMUM = 5
