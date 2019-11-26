@@ -155,6 +155,7 @@ class service_map(object):
             else:
                 del cls.__GLOBAL_MIGRATION_MAP[user_token][service_id]
                 if len(cls.__GLOBAL_MIGRATION_MAP[user_token])==0:
+                    # del 不会删除元素,其他的代码还可以继续使用当前数据
                     del cls.__GLOBAL_MIGRATION_MAP[user_token]
                 
                 cls.__migration_lock.release()
