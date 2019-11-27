@@ -15,6 +15,25 @@ class service_map(object):
     __user_service_lock = Lock()
     __GLOBAL_USER_SERVICE_MAP: map = {}
     __GLOBAL_MIGRATION_MAP: map = {}
+    __us_func:function =__default_func
+    __mig_func:function =__default_func
+
+    @classmethod
+    def __default_func(cls,**args):
+        pass
+
+    @classmethod
+    def register_us_func(cls,fn:function):
+        cls.__us_func =fn
+    @classmethod
+    def register_migration_func(cls,fn:function):
+        cls.__mig_func =fn
+    @classmethod
+    def deregister_us_func(cls):
+        cls.__us_func =cls.__default_func
+    @classmethod
+    def deregister_mig_func(cls):
+        cls.__mig_func =cls.__default_func
 
     @classmethod
     # 如果 us不在map中,返回false,us为空
@@ -85,12 +104,16 @@ class service_map(object):
             # 新存入一个,返回true    
             cls.__GLOBAL_MIGRATION_MAP[us.service_token.user_id][us.service_token.service_id]=us
             cls.__migration_lock.release()
+            # call migration func
+            cls.__mig_func(us)
             return True
         else:
             # 新建map,存入对象
             cls.__GLOBAL_MIGRATION_MAP[us.service_token.user_id]={}
             cls.__GLOBAL_MIGRATION_MAP[us.service_token.user_id][us.service_token.service_id]=us
             cls.__migration_lock.release()
+            # call migration func
+            cls.__mig_func(us)
             return True
 
     @classmethod
@@ -106,12 +129,16 @@ class service_map(object):
             # 新存入一个,返回true
             cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id][us.service_token.service_id] = us
             cls.__user_service_lock.release()
+            # call migration func
+            cls.__us_func(us)
             return True
         else:
             # 新建map,存入对象
             cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id] = {}
             cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id][us.service_token.service_id] = us
             cls.__user_service_lock.release()
+            # call migration func
+            cls.__us_func(us)
             return True
 
     @classmethod
@@ -128,6 +155,7 @@ class service_map(object):
             else:
                 del cls.__GLOBAL_MIGRATION_MAP[user_token][service_id]
                 if len(cls.__GLOBAL_MIGRATION_MAP[user_token])==0:
+                    # del 不会删除元素,其他的代码还可以继续使用当前数据
                     del cls.__GLOBAL_MIGRATION_MAP[user_token]
                 
                 cls.__migration_lock.release()
