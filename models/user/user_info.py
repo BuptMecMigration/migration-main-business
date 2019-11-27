@@ -59,6 +59,9 @@ class UserService(object):
         # 调用链基础信息
         service_chain: ChainInfo
     '''
+    service_token: UserToken
+    service_bus: UserBusiness
+    service_chain: ChainInfo
 
     def set_migration_info(self, user_business: UserBusiness) -> None:
         self.service_bus = user_business

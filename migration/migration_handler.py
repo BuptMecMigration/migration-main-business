@@ -24,7 +24,8 @@ from common.code import TRIES_MAXIMUM
 from common.global_var import service_map
 from common.utils.redis_utils import RedisUtil
 from common.utils.serialize import Serializer
-
+from migration.Message import Message, MsgFlag
+from models.user.user_info import UserService
 
 """
 模块A的处理办法，直接调用并进行处理返回操作结果
@@ -33,7 +34,7 @@ from common.utils.serialize import Serializer
 @param: userId：用户id
 @return：success | fail
 """
-def migration_sender(userId: int, serviceId: int, ip: int) -> bool:
+def migration_sender(userId: int, serviceId: int, ip: str) -> bool:
 
     # 处理用户全局map状态
     # 判断是否存在
@@ -47,6 +48,8 @@ def migration_sender(userId: int, serviceId: int, ip: int) -> bool:
 
     # 读取另一节点上注册过的处理接口（包括ip和端口）
     port = get_target_peer(ip)
+    if port == -1:
+        return False
 
     # 调用TCP模块，转发用户后续请求
     if not port_send(us, ip, port):
@@ -66,7 +69,7 @@ def migration_receiver(port: int):
         workers.append(threading.Thread(target=worker, daemon=True))
         workers[-1].start()
 
-    # 将监听端口注册到某个地方
+    # 将监听端口注册到某个地方，这个地方最好写成全局IP
     workers = []
     server = ThreadedTCPServer(('0.0.0.0', port), TCPHandler)
     # 开始监听过程
@@ -82,17 +85,23 @@ def migration_receiver(port: int):
 @param: None
 @return: Msg
 """
-def port_send(message, ip: int , port: int) -> bool:
+def port_send(data: object, flag:int, ip: str , port: int) -> bool:
+
     tries_left = int(TRIES_MAXIMUM)
 
     if tries_left <= 0:
-        # 日志模块写入
+        # 日志模块写入重试失败问题记录
         return False
 
     while tries_left > 0:
         try:
-            with socket.create_connection(ip, port, timeout=1) as s:
-                s.sendall(Serializer.encode_socket_data(message))
+            message = ''
+            if flag == 0:
+                message = Message(MsgFlag.MsgUsRecover, data)
+            if flag == 1:
+                message = Message(MsgFlag.MsgUsDataRecover, data)
+            with socket.create_connection((ip, port)) as s:
+                s.sendall(Serializer.pickle_serialize(message))
         except Exception as e:
             tries_left -= 1
             time.sleep(1)
@@ -107,7 +116,7 @@ def port_send(message, ip: int , port: int) -> bool:
 @param: None
 @return: Msg
 """
-def port_receive(req, gs)-> object:
+def port_receive(req: bytes)-> object:
     data = b''
     # 前4 Bytes代表数据长度
     msg_len = int(binascii.hexlify(req.recv(4) or b'\x00'), 16)
@@ -115,7 +124,7 @@ def port_receive(req, gs)-> object:
         tdat = req.recv(1024)
         data += tdat
         msg_len -= len(tdat)
-    return Serializer.to_deserialize(data.decode(), gs) if data else None
+    return Serializer.pickle_deserialize(data) if data else None
 
 
 """
@@ -128,7 +137,7 @@ def get_target_peer(ip: str) -> int:
     for peer_ip in peers.key():
         if peer_ip == ip:
             return peers[peer_ip]
-    return None
+    return -1
 
 
 """
@@ -136,14 +145,19 @@ def get_target_peer(ip: str) -> int:
 @param: 某server的ip和port
 @return: None
 """
-def add_server_address(ip:str, port:int):
+def add_server_address(ip: str, port: int):
     peer_data = RedisUtil.get_redis_data("peers")
     dict = json.loads(peer_data)
-    dict[ip]=port
+    dict[ip] = port
     RedisUtil.set_redis_data("peers", json.dumps(dict))
 
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    """
+        the TCP Server class to support the data receive.
+        the handler is the method we write to receive different type of data.
+        author: jqliu_bupt@163.com
+    """
     def __init__(self, server_address, RequestHandlerClass):
         socketserver.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
@@ -154,23 +168,33 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         # 接收相关消息恢复处理, gs为相关map处理过程
-        gs = dict()
         try:
-            message = Serializer.read_all_from_socket(self.request, gs)
+            message = Serializer.read_all_from_socket(self.request)
         except Exception as e:
+            cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+            print("get exception from socket receive part: {} and time is {}".format(e, cur_time))
             return
 
-        if message.code == 0:
+        if not isinstance(message, Message):
+            # 输出日志
+            return
+
+        action = int(message.msg_flag)
+        us = message.data
+
+        if not isinstance(us, UserService):
+            # 输出日志
+            return
+
+        if action == MsgFlag.MsgUsRecover:
             # 处理us信息
-            us = message.body
             service_map.set_user_service(us)
-        if message.code == 1:
+        if action == MsgFlag.MsgUsDataRecover:
             # 处理后续转发消息, 需要接口
-            return
+            service_map.set_user_service(us)
         # 关闭接口
-        # self.request.shutdown(2)
-        # self.request.close()
-
+        self.request.shutdown(2)
+        self.request.close()
 
 
 if __name__ == '__main__':

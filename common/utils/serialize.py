@@ -1,8 +1,11 @@
 import binascii
 import json
+import pickle
 from typing import (
     Iterable, NamedTuple, Dict, Mapping, Union, get_type_hints, Tuple,
     Callable)
+
+import cloudpickle
 
 
 class Serializer(object):
@@ -88,17 +91,28 @@ class Serializer(object):
         return contents_to_objs(json.loads(serialized))
 
     @classmethod
+    def pickle_serialize(cls, data: object) -> bytes:
+        """use pickle way to serialize the data"""
+        # 后续代码可以抽离出来再次重用
+        # https://github.com/cloudpipe/cloudpickle
+        return cloudpickle.dumps(data)
+
+    @classmethod
+    def pickle_deserialize(cls, data: bytes) -> object:
+        return pickle.loads(data)
+
+    @classmethod
     def encode_socket_data(cls, data: object) -> bytes:
         """Our protocol is: first 4 bytes signify msg length."""
 
         def int_to_8bytes(a: int) -> bytes:
             return binascii.unhexlify(f"{a:0{8}x}")
 
-        to_send = cls.to_serialize(data).encode()
+        to_send = cls.pickle_serialize(data)
         return int_to_8bytes(len(to_send)) + to_send
 
     @classmethod
-    def read_all_from_socket(cls, req, gs) -> object:
+    def read_all_from_socket(cls, req) -> object:
         data = b''
         # Our protocol is: first 4 bytes signify msg length.
         msg_len = int(binascii.hexlify(req.recv(4) or b'\x00'), 16)
@@ -108,4 +122,4 @@ class Serializer(object):
             data += tdat
             msg_len -= len(tdat)
 
-        return cls.to_deserialize(data.decode(), gs) if data else None
+        return cls.pickle_deserialize(data) if data else None
