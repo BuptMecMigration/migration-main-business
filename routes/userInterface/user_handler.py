@@ -3,7 +3,7 @@ import requests
 
 from common.global_var import service_map
 from common.utils.redis_utils import RedisUtil
-from common.utils.token import Token
+from common.utils.token_utils import Token
 from migration.migration_handler import migration_sender
 from models.business.chain_info import ChainInfo
 from models.user.user_info import UserToken, UserService, UserBusiness
