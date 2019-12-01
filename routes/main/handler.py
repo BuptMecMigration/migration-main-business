@@ -3,10 +3,9 @@ import requests
 
 from models.business.chain_info import *
 from models.user.user_info import *
-from common.utils.logger import logger
 
 from common.global_var import service_map
-from common.utils.logger import logger
+from common import log
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -34,7 +33,7 @@ class compute_handler(object):
         # 从offset恢复对应的服务
         is_In_map, us = service_map.get_user_service(user_token, service_token)
         if not is_In_map:
-            logger.warn("not in service map")
+            log.logger.warn("not in service map")
             return
 
         us.lock_userService()
@@ -56,7 +55,7 @@ class compute_handler(object):
             if res.status_code == 200:
                 data = res.raw.read()
             if res.status_code != 200:
-                logger.warn("receive non-200 return without doing anything ")
+                log.logger.warn("receive non-200 return without doing anything ")
                 # TODO re-try
                 return
 
@@ -65,7 +64,7 @@ class compute_handler(object):
             if is_migration:
                 # 需要处理migration逻辑,立即释放锁
                 us.unlock_userService()
-                logger.warn("migration begins")
+                log.logger.warn("migration begins")
                 #Todo : 处理中断逻辑
                 return
 
