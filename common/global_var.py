@@ -15,29 +15,29 @@ class service_map(object):
     __user_service_lock = Lock()
     __GLOBAL_USER_SERVICE_MAP: map = {}
     __GLOBAL_MIGRATION_MAP: map = {}
-    __us_func:function =__default_func
-    __mig_func:function =__default_func
+    __us_func: function = __default_func
+    __mig_func: function = __default_func
 
     @classmethod
-    def __default_func(cls,**args):
+    def __default_func(cls, **args):
         pass
 
     @classmethod
-    def register_us_func(cls,fn:function):
-        cls.__us_func =fn
+    def register_us_func(cls,fn: function):
+        cls.__us_func = fn
     @classmethod
     def register_migration_func(cls,fn:function):
-        cls.__mig_func =fn
+        cls.__mig_func = fn
     @classmethod
     def deregister_us_func(cls):
-        cls.__us_func =cls.__default_func
+        cls.__us_func = cls.__default_func
     @classmethod
     def deregister_mig_func(cls):
-        cls.__mig_func =cls.__default_func
+        cls.__mig_func = cls.__default_func
 
     @classmethod
     # 如果 us不在map中,返回false,us为空
-    def get_migration_service(cls, user_token: int, service_id:int) -> (bool, UserService):
+    def get_migration_service(cls, user_token: int, service_id: int) -> (bool, UserService):
         cls.__migration_lock.acquire()
         if user_token not in cls.__GLOBAL_MIGRATION_MAP:
             cls.__migration_lock.release()
@@ -47,7 +47,7 @@ class service_map(object):
             if service_id not in us_map:
                 cls.__migration_lock.release()
                 return False, None
-            us=cls.__GLOBAL_MIGRATION_MAP[service_id]
+            us = cls.__GLOBAL_MIGRATION_MAP[service_id]
             cls.__migration_lock.release()
             return True, us
 

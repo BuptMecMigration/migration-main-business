@@ -22,10 +22,15 @@ import time
 
 from common.code import TRIES_MAXIMUM
 from common.global_var import service_map
+from common.utils.logger_utils import Logger
 from common.utils.redis_utils import RedisUtil
-from common.utils.serialize import Serializer
+from common.utils.serialize_utils import Serializer
 from migration.Message import Message, MsgFlag
 from models.user.user_info import UserService
+
+log = Logger('../../logs/all.log', level='info')
+log_error = Logger('../../logs/error.log', level='error')
+
 
 """
 模块A的处理办法，直接调用并进行处理返回操作结果
@@ -34,14 +39,15 @@ from models.user.user_info import UserService
 @param: userId：用户id
 @return：success | fail
 """
-def migration_sender(userId: int, serviceId: int, ip: str) -> bool:
+def migration_sender(userId: int, flag: bool, serviceId: int, ip: str) -> bool:
 
     # 处理用户全局map状态
     # 判断是否存在
     return_field = service_map.get_user_service(userId, serviceId)
 
     if not return_field[0]:
-        # TODO 输出错误日志
+        # 输出错误日志
+        log.logger.info('[访问错误]: 用户未注册，请注册节点后再进行迁移操作')
         return False
     us = return_field[1]
     service_map.set_user_service(return_field[1].setflag(True))
@@ -52,7 +58,7 @@ def migration_sender(userId: int, serviceId: int, ip: str) -> bool:
         return False
 
     # 调用TCP模块，转发用户后续请求
-    if not port_send(us, ip, port):
+    if not port_send(us, flag, ip, port):
         return False
 
     return True
@@ -66,12 +72,13 @@ def migration_sender(userId: int, serviceId: int, ip: str) -> bool:
 def migration_receiver(port: int):
 
     def start_worker(workers, worker):
+        log.logger.info('[运行时]: TCPServer已在本地: {} 开始监听'.format(port))
         workers.append(threading.Thread(target=worker, daemon=True))
         workers[-1].start()
 
     # 将监听端口注册到某个地方，这个地方最好写成全局IP
     workers = []
-    server = ThreadedTCPServer(('0.0.0.0', port), TCPHandler)
+    server = ThreadedTCPServer(('localhost', port), TCPHandler)
     # 开始监听过程
     start_worker(workers, server.serve_forever)
     # 接收用户请求并进行处理

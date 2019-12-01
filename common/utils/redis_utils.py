@@ -2,7 +2,7 @@
 import redis
 
 from common.redis_config import REDIS_DB_URL
-from common.utils.serialize import Serializer
+from common.utils.serialize_utils import Serializer
 
 
 def connect_redis():

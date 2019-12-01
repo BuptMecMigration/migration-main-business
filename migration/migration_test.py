@@ -1,6 +1,6 @@
 import time
 
-from common.utils.serialize import Serializer
+from common.utils.serialize_utils import Serializer
 from models.user.user_info import UserToken, UserService
 
 import cloudpickle
