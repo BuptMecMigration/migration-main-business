@@ -17,10 +17,10 @@ class service_map(object):
     __GLOBAL_MIGRATION_MAP: map = {}
  
     @classmethod
-    def __us_func(cls,**args):
+    def __us_func(cls,args):
         pass
     @classmethod
-    def __mig_func(cls,**args):
+    def __mig_func(cls,args):
         pass
 
     @classmethod
