@@ -24,10 +24,10 @@ class service_map(object):
         pass
 
     @classmethod
-    def register_us_func(cls,fn: function):
+    def register_us_func(cls,fn):
         cls.__us_func = fn
     @classmethod
-    def register_migration_func(cls,fn:function):
+    def register_migration_func(cls,fn):
         cls.__mig_func = fn
     @classmethod
     def deregister_us_func(cls):
