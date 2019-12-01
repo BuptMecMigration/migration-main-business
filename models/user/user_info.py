@@ -86,6 +86,7 @@ class UserService(object):
     
     def lock_userService(self) -> None:
         self.process_lock.acquire()
+
     def unlock_userService(self) -> None:
         self.process_lock.release()
 

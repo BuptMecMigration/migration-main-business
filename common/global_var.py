@@ -18,7 +18,7 @@ class service_map(object):
     __us_func: function = __default_func
     __mig_func: function = __default_func
 
-    @classmethod
+    @staticmethod
     def __default_func(cls, **args):
         pass
 
@@ -69,7 +69,7 @@ class service_map(object):
 
     @classmethod
     # 如果 us不在map中,返回false,us为空
-    def get_all_migration_service(cls, user_token: int) -> (bool, map(int,UserService)):
+    def get_all_migration_service(cls, user_token: int) -> (bool, map(int, UserService)):
         cls.__migration_lock.acquire()
         if user_token not in cls.__GLOBAL_MIGRATION_MAP:
             cls.__migration_lock.release()
