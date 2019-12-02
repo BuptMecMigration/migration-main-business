@@ -15,25 +15,34 @@ class service_map(object):
     __user_service_lock = Lock()
     __GLOBAL_USER_SERVICE_MAP: map = {}
     __GLOBAL_MIGRATION_MAP: map = {}
-    __us_func: function = __default_func
-    __mig_func: function = __default_func
 
-    @staticmethod
-    def __default_func(cls, **args):
+    @classmethod
+    def __us_func(cls, **args):
         pass
 
     @classmethod
-    def register_us_func(cls,fn: function):
-        cls.__us_func = fn
+    def __mig_func(cls, **args):
+        pass
+
     @classmethod
-    def register_migration_func(cls,fn:function):
+    def register_us_func(cls, fn):
+        cls.__us_func = fn
+
+    @classmethod
+    def register_migration_func(cls, fn):
         cls.__mig_func = fn
+
     @classmethod
     def deregister_us_func(cls):
-        cls.__us_func = cls.__default_func
+        def default():
+            pass
+        cls.__us_func = default
+
     @classmethod
     def deregister_mig_func(cls):
-        cls.__mig_func = cls.__default_func
+        def default():
+            pass
+        cls.__mig_func = default
 
     @classmethod
     # 如果 us不在map中,返回false,us为空
