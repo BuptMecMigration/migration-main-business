@@ -17,11 +17,11 @@ class service_map(object):
     __GLOBAL_MIGRATION_MAP: map = {}
 
     @classmethod
-    def __us_func(cls, **args):
+    def __us_func(cls, args):
         pass
 
     @classmethod
-    def __mig_func(cls, **args):
+    def __mig_func(cls, args):
         pass
 
     @classmethod
@@ -31,6 +31,20 @@ class service_map(object):
     @classmethod
     def register_migration_func(cls, fn):
         cls.__mig_func = fn
+
+    @classmethod
+    def deregister_us_func(cls):
+        def default():
+            pass
+
+        cls.__us_func = default
+
+    @classmethod
+    def deregister_mig_func(cls):
+        def default():
+            pass
+
+        cls.__mig_func = default
 
     @classmethod
     def deregister_us_func(cls):
