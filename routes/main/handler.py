@@ -6,6 +6,7 @@ from models.user.user_info import *
 
 from common.global_var import service_map
 from common import log
+from threading import Lock
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -14,6 +15,7 @@ class compute_handler(object):
 
     pool = ThreadPoolExecutor(1024)
 
+
     @classmethod
     def compute_us_func(cls, us: UserService):
         user_token, service_token = us.service_token.user_id, us.service_token.service_id
@@ -21,12 +23,16 @@ class compute_handler(object):
    
     @classmethod
     def mig_func(cls, us: UserService):
-        pass
+        cls.pool.submit(cls.handel_migration, (us))
 
     @classmethod
     def register_func(cls):
         service_map.register_us_func(cls.compute_us_func)
         service_map.register_migration_func(cls.mig_func)
+
+    @classmethod 
+    def handel_migration(cls,us: UserService):
+        migration_maintainer.add_in_migration_us(us)
 
     @classmethod
     def handel_service(user_token: int, service_token: int):
@@ -60,7 +66,7 @@ class compute_handler(object):
                 return
 
             us.lock_userService()
-            is_migration = us.service_bus.is_migration
+            is_migration =  migration_maintainer.is_us_in_migration(us.service_token.service_id)
             if is_migration:
                 # 需要处理migration逻辑,立即释放锁
                 us.unlock_userService()
@@ -73,3 +79,31 @@ class compute_handler(object):
             # 增加offset
             us.service_bus.chain_offset += 1
             us.unlock_userService()
+
+
+class migration_maintainer(object):
+    __lock=Lock()
+    # 由于service_id唯一,使用Service作为key你说那你的话不能 
+    __US_STATUS_MAP={}
+
+    @classmethod 
+    def is_us_in_migration(cls,service_id:int):
+        cls.__lock.acquire()
+        output=True if service_id in __US_STATUS_MAP else False
+        cls.__lock.release()
+        return output
+
+    @classmethod
+    def add_in_migration_us(cls,us: UserService):
+        cls.__lock.acquire()
+        us.service_bus.is_migration=True
+        __US_STATUS_MAP[us.service_token.service_id]=us
+        cls.__lock.release()
+
+    @classmethod
+    def remove_us_by_service_id(cls,service_id: int):
+        cls.__lock.acquire()
+        if service_id in __US_STATUS_MAP:
+            us.service_bus.is_migration=False
+            del __US_STATUS_MAP[service_id]
+        cls.__lock.release()
