@@ -13,8 +13,10 @@ class service_map(object):
 
     __migration_lock = Lock()
     __user_service_lock = Lock()
+    __success_map_lock = Lock()
     __GLOBAL_USER_SERVICE_MAP: map = {}
     __GLOBAL_MIGRATION_MAP: map = {}
+    __GLOBAL_SUCCESS_MAP: map = {}
 
     @classmethod
     def __us_func(cls, args):
@@ -188,3 +190,23 @@ class service_map(object):
                 
                 cls.__user_service_lock.release()
                 return True
+
+    @classmethod
+    def is_us_success(cls, user_token:int, service_token:int)->bool:
+        cls.__success_map_lock.acquire()
+        if user_token not in cls.__GLOBAL_SUCCESS_MAP:
+            cls.__success_map_lock.release()
+            return False
+        else:
+            if service_token not in cls.__GLOBAL_SUCCESS_MAP[user_token]:
+                cls.__success_map_lock.release()
+                return False
+            else:
+                cls.__success_map_lock.release()
+                return True
+    
+    @classmethod 
+        def add_successed_us(cls, user_token:int, service_token:int)->bool:
+            pass
+
+        
