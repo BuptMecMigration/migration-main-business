@@ -22,14 +22,12 @@ import time
 
 from common.code import TRIES_MAXIMUM
 from common.global_var import service_map
-from common.utils.logger_utils import Logger
+from common.utils import log,log_error
 from common.utils.redis_utils import RedisUtil
 from common.utils.serialize_utils import Serializer
 from migration.Message import Message, MsgFlag
 from models.user.user_info import UserService
 
-log = Logger('../../logs/all.log', level='info')
-log_error = Logger('../../logs/error.log', level='error')
 
 
 """

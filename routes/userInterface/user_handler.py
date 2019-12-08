@@ -25,7 +25,7 @@ def user_job_handle():
     req_data = data('req_data')
 
     # 生成userToken
-    user_token = UserToken(serviceId, user_ip, user_port)
+    user_token = UserToken(serviceId=serviceId, ip=user_ip, port=user_port)
 
     # 分配ID
     id = Token.gen_service_token()
@@ -43,7 +43,7 @@ def user_job_handle():
     business_data = UserBusiness(False, 0, req_data)
 
     # 封装UserService
-    user_service = UserService(user_token)
+    user_service = UserService(user_token=user_token)
     user_service.set_migration_info(business_data)
     user_service.set_chain_info(chain_data)
 
