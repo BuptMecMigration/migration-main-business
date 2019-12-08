@@ -15,25 +15,43 @@ class service_map(object):
     __user_service_lock = Lock()
     __GLOBAL_USER_SERVICE_MAP: map = {}
     __GLOBAL_MIGRATION_MAP: map = {}
- 
+
     @classmethod
-    def __us_func(cls,args):
-        pass
-    @classmethod
-    def __mig_func(cls,args):
+    def __us_func(cls, args):
         pass
 
     @classmethod
-    def register_us_func(cls,fn):
-        cls.__us_func = fn
+    def __mig_func(cls, args):
+        pass
+
     @classmethod
-    def register_migration_func(cls,fn):
+    def register_us_func(cls, fn):
+        cls.__us_func = fn
+
+    @classmethod
+    def register_migration_func(cls, fn):
         cls.__mig_func = fn
+
     @classmethod
     def deregister_us_func(cls):
         def default():
             pass
-        cls.__us_func =default 
+
+        cls.__us_func = default
+
+    @classmethod
+    def deregister_mig_func(cls):
+        def default():
+            pass
+
+        cls.__mig_func = default
+
+    @classmethod
+    def deregister_us_func(cls):
+        def default():
+            pass
+        cls.__us_func = default
+
     @classmethod
     def deregister_mig_func(cls):
         def default():

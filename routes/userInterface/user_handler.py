@@ -25,7 +25,7 @@ def user_job_handle():
     req_data = data('req_data')
 
     # 生成userToken
-    user_token = UserToken(serviceId, user_ip, user_port)
+    user_token = UserToken(serviceId=serviceId, ip=user_ip, port=user_port)
 
     # 分配ID
     id = Token.gen_service_token()
@@ -43,7 +43,7 @@ def user_job_handle():
     business_data = UserBusiness(False, 0, req_data)
 
     # 封装UserService
-    user_service = UserService(user_token)
+    user_service = UserService(user_token=user_token)
     user_service.set_migration_info(business_data)
     user_service.set_chain_info(chain_data)
 
@@ -68,15 +68,14 @@ def user_migration_handle():
 
     # 修改redis中用户的ip及port信息
     token = RedisUtil.get_redis_data(userId)
-    RedisUtil.set_redis_data(userId, UserToken(token["serviceID"], ip, port))
+    RedisUtil.set_redis_data(userId, UserToken(user_id=userId, serviceId=token["serviceID"], ip=ip, port=port))
 
     # 后续迁移处理信息部分UserBusiness的flag都变成True
     returnField = service_map.get_user_service(userId, serviceId)
     if not returnField[0]:
         return "You service is not recorded"
-    # TODO 这个map是否幂等写入
     # 并且交给迁移转发模块进行处理，不在本地进行处理
-    if migration_sender(userId, serviceId):
+    if migration_sender(userId=userId, serviceId=serviceId, flag=0, ip=ip):
         return "Operate migration process fail!"
 
     return "Migration is started, new ip: %s, new port: %d" % (ip, port)
@@ -107,7 +106,6 @@ def test_redis_read():
     data = request.get_json()
     key = data.get('key')
     chain = RedisUtil.get_redis_data(key)
-    print(type(chain))
     return "get: %s" % chain
 
 

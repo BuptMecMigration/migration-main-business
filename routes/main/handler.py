@@ -15,7 +15,6 @@ class compute_handler(object):
 
     pool = ThreadPoolExecutor(1024)
 
-
     @classmethod
     def compute_us_func(cls, us: UserService):
         user_token, service_token = us.service_token.user_id, us.service_token.service_id
@@ -31,7 +30,7 @@ class compute_handler(object):
         service_map.register_migration_func(cls.mig_func)
 
     @classmethod 
-    def handel_migration(cls,us: UserService):
+    def handel_migration(cls, us: UserService):
         migration_maintainer.add_in_migration_us(us)
 
     @classmethod
@@ -62,12 +61,12 @@ class compute_handler(object):
                 return
 
             us.lock_userService()
-            is_migration =  migration_maintainer.is_us_in_migration(us.service_token.service_id)
+            is_migration = migration_maintainer.is_us_in_migration(us.service_token.service_id)
             if is_migration:
                 # 需要处理migration逻辑,立即释放锁
                 us.unlock_userService()
                 log.logger.warn("migration begins")
-                #Todo : 处理中断逻辑
+                # Todo: 处理中断逻辑
                 return
 
             # 更新data
@@ -80,7 +79,7 @@ class compute_handler(object):
 class migration_maintainer(object):
     __lock=Lock()
     # 由于service_id唯一,使用Service作为key你说那你的话不能 
-    __US_STATUS_MAP={}
+    __US_STATUS_MAP = {}
 
     @classmethod 
     def is_us_in_migration(cls,service_id:int):

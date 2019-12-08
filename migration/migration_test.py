@@ -20,4 +20,4 @@ if __name__ == '__main__':
     recover = pickle.loads(temp)
     print(recover)
     print(type(recover))
-    print(type(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))))
+    print(type(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))))

@@ -37,7 +37,7 @@ from models.user.user_info import UserService
 @param: userId：用户id
 @return：success | fail
 """
-def migration_sender(userId: int, flag: bool, serviceId: int, ip: str) -> bool:
+def migration_sender(userId: int, flag: int, serviceId: int, ip: str) -> bool:
 
     # 处理用户全局map状态
     # 判断是否存在
