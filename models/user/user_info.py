@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from common.utils.time_utils import TimeUtils
 from models.business.chain_info import ChainInfo
-from threading import Lock
+
 
 
 class UserToken(object):
@@ -52,14 +52,14 @@ class UserBusiness(object):
 
 # 服务所使用的真正实体
 class UserService(object):
-    '''
+    """
         # 用户相关token
         service_token: UserToken
         # 调用链执行信息
         service_bus: UserBusiness
         # 调用链基础信息
         service_chain: ChainInfo
-    '''
+    """
     service_token: UserToken
     service_bus: UserBusiness
     service_chain: ChainInfo
@@ -82,11 +82,6 @@ class UserService(object):
         self.service_token: UserToken = user_token
         self.service_bus: UserBusiness = None
         self.service_chain: ChainInfo = None
-        self.process_lock=Lock()
-    
-    def lock_userService(self) -> None:
-        self.process_lock.acquire()
 
-    def unlock_userService(self) -> None:
-        self.process_lock.release()
+
 
