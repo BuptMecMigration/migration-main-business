@@ -3,7 +3,6 @@ from common.utils.time_utils import TimeUtils
 from models.business.chain_info import ChainInfo
 
 
-
 class UserToken(object):
     """
         用户的相关token
