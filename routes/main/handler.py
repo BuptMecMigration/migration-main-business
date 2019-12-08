@@ -89,7 +89,7 @@ class migration_maintainer(object):
     @classmethod 
     def is_us_in_migration(cls,service_id:int):
         cls.__lock.acquire()
-        output=True if service_id in __US_STATUS_MAP else False
+        output=True if service_id in cls.__US_STATUS_MAP else False
         cls.__lock.release()
         return output
 
@@ -97,13 +97,13 @@ class migration_maintainer(object):
     def add_in_migration_us(cls,us: UserService):
         cls.__lock.acquire()
         us.service_bus.is_migration=True
-        __US_STATUS_MAP[us.service_token.service_id]=us
+        cls.__US_STATUS_MAP[us.service_token.service_id]=us
         cls.__lock.release()
 
     @classmethod
     def remove_us_by_service_id(cls,service_id: int):
         cls.__lock.acquire()
-        if service_id in __US_STATUS_MAP:
-            us.service_bus.is_migration=False
-            del __US_STATUS_MAP[service_id]
+        if service_id in cls.__US_STATUS_MAP:
+            cls.__US_STATUS_MAP[service_id].service_bus.is_migration=False
+            del cls.__US_STATUS_MAP[service_id]
         cls.__lock.release()
