@@ -9,6 +9,7 @@ from models.user.user_info import UserService
 # value为保存当前user_id下所有service的map
 # value的map以service_id做key,value为UserService对象
 
+# TODO: 数据结构操作极端重复,未来可能整合抽象一个底层的class
 class service_map(object):
 
     __migration_lock = Lock()
@@ -205,8 +206,51 @@ class service_map(object):
                 cls.__success_map_lock.release()
                 return True
     
-    @classmethod 
-        def add_successed_us(cls, user_token:int, service_token:int)->bool:
-            pass
+    # add_success_us moves a processed us from __GLOBAL_USER_SERVICE_MAP to __GLOBAL_SUCCESS_MAP
+    @classmethod
+    def add_success_us(cls, user_token:int, service_token:int)->bool:
+        got,us=cls.get_user_service(user_token, service_token)
+        if not got:
+            # cannot add if us is not in __GLOBAL_USER_SERVICE_MAP
+            return False
+        cls.__success_map_lock.acquire()
+        if us.service_token.user_id in cls.__GLOBAL_SUCCESS_MAP:
+            # 当前service_id已经存入,不能再存,返回false
+            if us.service_token.service_id in  cls.__GLOBAL_SUCCESS_MAP[us.service_token.user_id]:
+                cls.__success_map_lock.release()
+                return False
+            # 新存入一个,返回true
+            cls.__GLOBAL_SUCCESS_MAP[us.service_token.user_id][us.service_token.service_id] = us
+            cls.__success_map_lock.release()
+            return True
+        else:
+            # 新建map,存入对象
+            cls.__GLOBAL_SUCCESS_MAP[us.service_token.user_id] = {}
+            cls.__GLOBAL_SUCCESS_MAP[us.service_token.user_id][us.service_token.service_id] = us
+            cls.__success_map_lock.release()
+            return True
+    
+    # pop_success_user pop一个元素,一旦成功pop,将删除对应元素
+    @classmethod
+    def pop_success_user(cls, user_token:int, service_token:int)->(bool,UserService):
+        cls.__success_map_lock.acquire()
+        if user_token not in cls.__GLOBAL_SUCCESS_MAP:
+            cls.__success_map_lock.release()
+            return False, None
+        else:
+            us_map = cls.__GLOBAL_SUCCESS_MAP[user_token]
+            if service_token not in us_map:
+                cls.__success_map_lock.release()
+                return False, None
+                
+            us= cls.__GLOBAL_SUCCESS_MAP[service_token]
+
+            # 一旦能取得返回数据(pop),删除对应元素
+            del cls.__GLOBAL_SUCCESS_MAP[user_token][service_token]
+            if len(cls.__GLOBAL_SUCCESS_MAP[user_token])==0:
+                del cls.__GLOBAL_SUCCESS_MAP[user_token]
+
+            cls.__success_map_lock.release()
+            return True, us
 
         

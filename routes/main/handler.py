@@ -34,7 +34,7 @@ class compute_handler(object):
         migration_maintainer.add_in_migration_us(us)
 
     @classmethod
-    def handel_service(user_token: int, service_token: int):
+    def handel_service(cls,user_token: int, service_token: int):
         # 从offset恢复对应的服务
         is_In_map, us = service_map.get_user_service(user_token, service_token)
         if not is_In_map:
