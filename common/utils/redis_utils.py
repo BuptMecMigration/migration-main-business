@@ -18,11 +18,11 @@ class RedisUtil(object):
     @classmethod
     def get_redis_data(cls, key: str):
         data = cls.redis_conn.get(key)
-        return Serializer.pickle_serialize(data)
+        return Serializer.pickle_deserialize(data)
 
     @classmethod
     def set_redis_data(cls, key, value):
-        data = Serializer.pickle_deserialize(value)
+        data = Serializer.pickle_serialize(value)
         cls.redis_conn.set(
             name=key,
             value=data,

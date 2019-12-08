@@ -24,12 +24,9 @@ def user_job_handle():
     user_port = data('port')
     req_data = data('req_data')
 
-    # 生成userToken
-    user_token = UserToken(serviceId=serviceId, ip=user_ip, port=user_port)
-
-    # 分配ID
+    # 生成userToken，分配id
     id = Token.gen_service_token()
-    user_token.user_id = id
+    user_token = UserToken(serviceId=serviceId, ip=user_ip, port=user_port, user_id=id)
 
     # token存redis
     RedisUtil.set_redis_data(user_token.user_id, user_token)
@@ -99,7 +96,7 @@ def admin_add_service():
     return "service: %d is added now" % serviceId
 
 
-# test_redis
+# test_redis_read
 @user_interface.route('/test/redis_get', methods=['POST'])
 def test_redis_read():
 
@@ -109,11 +106,57 @@ def test_redis_read():
     return "get: %s" % chain
 
 
+# test_redis_write
 @user_interface.route('/test/redis_set', methods=['POST'])
 def test_redis_write():
 
     data = request.get_json()
     key = data.get('key')
     val = data.get('val')
-    res = RedisUtil.set_redis_data(key, val)
-    return "set: %s" % res
+    RedisUtil.set_redis_data(key, val)
+    return "set: %s" % val
+
+
+# test_function_1
+@user_interface.route('/test/function_1', methods=['POST'])
+def test_business_func1():
+
+    data = request.get_json()
+    data_str = data.get('test_string')
+    data_str += "this_is_func1_part_"
+    return data_str
+
+
+# test_function_2
+@user_interface.route('/test/function_2', methods=['POST'])
+def test_business_func2():
+    data = request.get_json()
+    data_str = data.get('test_string')
+    data_str += "this_is_func2_part_"
+    return data_str
+
+
+# test_function_3
+@user_interface.route('/test/function_3', methods=['POST'])
+def test_business_func3():
+    data = request.get_json()
+    data_str = data.get('test_string')
+    data_str += "this_is_func3_part_"
+    return data_str
+
+
+# test_function_4
+@user_interface.route('/test/function_4', methods=['POST'])
+def test_business_func4():
+    data = request.get_json()
+    data_str = data.get('test_string')
+    data_str += "this_is_func4_part!"
+    return data_str
+
+
+# get_result_function
+@user_interface.route('/test/get_function', methods=['POST'])
+def get_function():
+    # us =
+    us = UserService()
+    return us.service_bus.data
