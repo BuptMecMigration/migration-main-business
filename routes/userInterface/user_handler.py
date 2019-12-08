@@ -156,7 +156,7 @@ def test_business_func4():
 
 
 # get_result_function
-@user_interface.route('/test/get_function', method=['POST'])
+@user_interface.route('/test/get_function', methods=['POST'])
 def get_function():
     # us =
     us = UserService()
