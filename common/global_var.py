@@ -36,20 +36,6 @@ class service_map(object):
     def deregister_us_func(cls):
         def default():
             pass
-
-        cls.__us_func = default
-
-    @classmethod
-    def deregister_mig_func(cls):
-        def default():
-            pass
-
-        cls.__mig_func = default
-
-    @classmethod
-    def deregister_us_func(cls):
-        def default():
-            pass
         cls.__us_func = default
 
     @classmethod
