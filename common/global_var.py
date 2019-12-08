@@ -34,13 +34,13 @@ class service_map(object):
 
     @classmethod
     def deregister_us_func(cls):
-        def default():
+        def default(us:UserService):
             pass
         cls.__us_func = default
 
     @classmethod
     def deregister_mig_func(cls):
-        def default():
+        def default(us:UserService):
             pass
         cls.__mig_func = default
 
