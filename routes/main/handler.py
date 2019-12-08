@@ -5,7 +5,7 @@ from models.business.chain_info import *
 from models.user.user_info import *
 
 from common.global_var import service_map
-from common import log
+from common.utils import log
 from threading import Lock
 
 from concurrent.futures import ThreadPoolExecutor
@@ -42,18 +42,14 @@ class compute_handler(object):
             log.logger.warn("not in service map")
             return
 
-        us.lock_userService()
         offset, chain_length = us.service_bus.chain_offset, us.service_chain.num
-        us.unlock_userService()
 
         for i in range(offset,
                        chain_length):
 
             # 获取miniservice对应地址
             # 必须先处理完毕
-            us.lock_userService()
             minServiceAddr, us_data = us.service_chain.mini_service[i], us.service_bus.data
-            us.unlock_userService()
 
             res = requests.post(minServiceAddr, data=us_data)
 
