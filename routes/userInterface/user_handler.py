@@ -113,8 +113,8 @@ def test_redis_write():
     data = request.get_json()
     key = data.get('key')
     val = data.get('val')
-    res = RedisUtil.set_redis_data(key, val)
-    return "set: %s" % res
+    RedisUtil.set_redis_data(key, val)
+    return "set: %s" % val
 
 
 # test_function_1
@@ -123,7 +123,6 @@ def test_business_func1():
 
     data = request.get_json()
     data_str = data.get('test_string')
-    print(data_str)
     data_str += "this_is_func1_part_"
     return data_str
 
