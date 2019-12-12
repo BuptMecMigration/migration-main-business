@@ -8,7 +8,8 @@ from common.utils.serialize_utils import Serializer
 def connect_redis():
     return redis.Redis(host=REDIS_DB_URL.HOST.value, port=REDIS_DB_URL.PORT.value,
                        password=REDIS_DB_URL.PASSWORD.value, db=REDIS_DB_URL.DB.value,
-                       decode_responses=True)
+                       )
+    # decode_responses = True 该选项设置为true会使得存储方式采用字符串进行，如果采取pickle则该参数应该采取默认值
 
 
 class RedisUtil(object):

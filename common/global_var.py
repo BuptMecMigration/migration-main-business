@@ -37,13 +37,13 @@ class service_map(object):
 
     @classmethod
     def deregister_us_func(cls):
-        def default(us:UserService):
+        def default(us: UserService):
             pass
         cls.__us_func = default
 
     @classmethod
     def deregister_mig_func(cls):
-        def default(us:UserService):
+        def default(us: UserService):
             pass
         cls.__mig_func = default
 
@@ -232,7 +232,7 @@ class service_map(object):
     
     # pop_success_user pop一个元素,一旦成功pop,将删除对应元素
     @classmethod
-    def pop_success_user(cls, user_token:int, service_token:int)->(bool,UserService):
+    def pop_success_user(cls, user_token: int, service_token: int)->(bool, UserService):
         cls.__success_map_lock.acquire()
         if user_token not in cls.__GLOBAL_SUCCESS_MAP:
             cls.__success_map_lock.release()
@@ -252,5 +252,3 @@ class service_map(object):
 
             cls.__success_map_lock.release()
             return True, us
-
-        

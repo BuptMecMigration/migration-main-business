@@ -3,10 +3,12 @@ import requests
 
 from common.global_var import service_map
 from common.utils.redis_utils import RedisUtil
+from common.utils.serialize_utils import Serializer
 from common.utils.token_utils import Token
 from migration.migration_handler import migration_sender
 from models.business.chain_info import ChainInfo
 from models.user.user_info import UserToken, UserService, UserBusiness
+from routes.main.handler import compute_handler
 
 user_interface = Blueprint('user_interface', __name__)
 
@@ -44,11 +46,10 @@ def user_job_handle():
     user_service.set_migration_info(business_data)
     user_service.set_chain_info(chain_data)
 
-    # 向内部URL发送一个带有UserService信息的请求
-    url = chain_info.service_addr(business_data.chain_offset)
-    req = requests.post(url, user_service)
+    # 这部分直接调用相关的map内置函数去处理对应的业务逻辑
+    compute_handler.compute_us_func(user_service)
 
-    return jsonify({"user_id": id, "redirect_result": req})
+    return jsonify({"user_id": id, "redirect_result": "your target ip is: {}:{} now".format(user_ip, user_port)})
 
 
 # 接口：/user/startMigration
@@ -94,69 +95,3 @@ def admin_add_service():
     RedisUtil.set_redis_data("serviceId_%d" % serviceId, new_chain_info)
 
     return "service: %d is added now" % serviceId
-
-
-# test_redis_read
-@user_interface.route('/test/redis_get', methods=['POST'])
-def test_redis_read():
-
-    data = request.get_json()
-    key = data.get('key')
-    chain = RedisUtil.get_redis_data(key)
-    return "get: %s" % chain
-
-
-# test_redis_write
-@user_interface.route('/test/redis_set', methods=['POST'])
-def test_redis_write():
-
-    data = request.get_json()
-    key = data.get('key')
-    val = data.get('val')
-    RedisUtil.set_redis_data(key, val)
-    return "set: %s" % val
-
-
-# test_function_1
-@user_interface.route('/test/function_1', methods=['POST'])
-def test_business_func1():
-
-    data = request.get_json()
-    data_str = data.get('test_string')
-    data_str += "this_is_func1_part_"
-    return data_str
-
-
-# test_function_2
-@user_interface.route('/test/function_2', methods=['POST'])
-def test_business_func2():
-    data = request.get_json()
-    data_str = data.get('test_string')
-    data_str += "this_is_func2_part_"
-    return data_str
-
-
-# test_function_3
-@user_interface.route('/test/function_3', methods=['POST'])
-def test_business_func3():
-    data = request.get_json()
-    data_str = data.get('test_string')
-    data_str += "this_is_func3_part_"
-    return data_str
-
-
-# test_function_4
-@user_interface.route('/test/function_4', methods=['POST'])
-def test_business_func4():
-    data = request.get_json()
-    data_str = data.get('test_string')
-    data_str += "this_is_func4_part!"
-    return data_str
-
-
-# get_result_function
-@user_interface.route('/test/get_function', methods=['POST'])
-def get_function():
-    # us =
-    us = UserService()
-    return us.service_bus.data

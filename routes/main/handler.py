@@ -34,7 +34,7 @@ class compute_handler(object):
         migration_maintainer.add_in_migration_us(us)
 
     @classmethod
-    def handel_service(cls,user_token: int, service_token: int):
+    def handel_service(cls, user_token: int, service_token: int):
         # 从offset恢复对应的服务
         is_In_map, us = service_map.get_user_service(user_token, service_token)
         if not is_In_map:
@@ -48,9 +48,10 @@ class compute_handler(object):
 
             # 获取miniservice对应地址
             # 必须先处理完毕
-            minServiceAddr, us_data = us.service_chain.mini_service[i], us.service_bus.data
+            minServiceAddr, us_data = us.service_chain.mini_service[StringUtils.get_miniservice_key(i)], \
+                                      us.service_bus.data
 
-            res = requests.post(minServiceAddr, data=us_data)
+            res = requests.post(minServiceAddr, json=us_data)
 
             # 从json文件中中获取data传输过来的data
             if res.status_code == 200:
