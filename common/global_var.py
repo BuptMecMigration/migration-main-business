@@ -25,6 +25,7 @@ class service_map(object):
 
     @classmethod
     def __mig_func(cls, args):
+        print("defalut func")
         pass
 
     @classmethod
@@ -33,6 +34,8 @@ class service_map(object):
 
     @classmethod
     def register_migration_func(cls, fn):
+
+        print("register new func")
         cls.__mig_func = fn
 
     @classmethod
@@ -112,12 +115,16 @@ class service_map(object):
             # 当前service_id已经存入,不能再存,返回false
             if us.service_token.service_id in  cls.__GLOBAL_MIGRATION_MAP[us.service_token.user_id]:
                 cls.__migration_lock.release()
+               # todo: remove debug 
+                print("add failed")
                 return False
             # 新存入一个,返回true    
             cls.__GLOBAL_MIGRATION_MAP[us.service_token.user_id][us.service_token.service_id]=us
             cls.__migration_lock.release()
             # call migration func
             cls.__mig_func(us)
+            # todo: remove debug 
+            print("add success")
             return True
         else:
             # 新建map,存入对象
@@ -126,6 +133,8 @@ class service_map(object):
             cls.__migration_lock.release()
             # call migration func
             cls.__mig_func(us)
+            # todo: remove debug 
+            print("add success")
             return True
 
     @classmethod
