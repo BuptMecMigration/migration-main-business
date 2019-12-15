@@ -17,9 +17,9 @@ class UserToken(object):
     def get_addr(self):
         return dict(self.addr)
 
-    def __init__(self,  *, ip, port, serviceId: int, user_id: int) -> None:
+    def __init__(self,  *, ip, port, service_id: int, user_id: int) -> None:
         self.user_id = user_id
-        self.service_id = serviceId
+        self.service_id = service_id
         self.addr = {'user_ip': ip, 'user_port': port}
 
     def __str__(self) -> str:
@@ -27,13 +27,16 @@ class UserToken(object):
 
 
 class UserBusiness(object):
-    # 调用链相关信息
-    is_migration: bool  # 迁移字段
-    chain_offset: int  # 调用链位置
-    data: str  # 传输数据
-    mig_begin: float  # 迁移时间戳
 
-    def __init__(self, is_migration, offset, data) -> None:
+    '''
+     调用链相关信息
+    is_migration: bool   ->迁移字段
+    chain_offset: int   ->调用链位置
+    data: str   ->传输数据
+    mig_begin: float  -> 迁移时间戳
+    '''
+
+    def __init__(self, *, is_migration, offset, data) -> None:
         self.is_migration = is_migration
         self.chain_offset = offset
         self.data = data
@@ -51,17 +54,15 @@ class UserBusiness(object):
 
 # 服务所使用的真正实体
 class UserService(object):
+
     """
-        # 用户相关token
-        service_token: UserToken
-        # 调用链执行信息
-        service_bus: UserBusiness
-        # 调用链基础信息
-        service_chain: ChainInfo
+        - 用户相关token
+            - service_token: UserToken
+        - 调用链执行信息
+            - service_bus: UserBusiness
+        - 调用链基础信息
+            - service_chain: ChainInfo
     """
-    service_token: UserToken
-    service_bus: UserBusiness
-    service_chain: ChainInfo
 
     def set_migration_info(self, user_business: UserBusiness) -> None:
         self.service_bus = user_business
@@ -77,10 +78,7 @@ class UserService(object):
     def get_chain_info(self):
         return self.service_chain
 
-    def __init__(self, *, user_token) -> None:
+    def __init__(self, *, user_token: UserToken, service_bus: UserBusiness, service_chain: ChainInfo) -> None:
         self.service_token: UserToken = user_token
-        self.service_bus: UserBusiness = None
-        self.service_chain: ChainInfo = None
-
-
-
+        self.service_bus: UserBusiness = service_bus
+        self.service_chain: ChainInfo = service_chain

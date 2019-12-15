@@ -17,17 +17,23 @@ class compute_handler(object):
 
     @classmethod
     def compute_us_func(cls, us: UserService):
+
+        print("begin compute")
+
         user_token, service_token = us.service_token.user_id, us.service_token.service_id
+        cls.pool.
         cls.pool.submit(cls.handel_service, (user_token, service_token))
    
     @classmethod
     def mig_func(cls, us: UserService):
+        print("add to pool")
         cls.pool.submit(cls.handel_migration, (us))
 
     @classmethod
     def register_func(cls):
         service_map.register_us_func(cls.compute_us_func)
         service_map.register_migration_func(cls.mig_func)
+        print("register success")
 
     @classmethod 
     def handel_migration(cls, us: UserService):

@@ -10,13 +10,13 @@ class ChainInfo(object):
     '''
     总的微服务的数量
     @ num: int
-    # index->int: addr->str
-    # service_addr 是 service的URI
-    # eg: "mini_service": {
-    #     "index_int(0)": "service_addr0",
-    #     "index_int(1)": "service_addr1"
-    # }
-    mini_service: dict
+    - index->int: addr->str
+    - service_addr 是 service的URI
+    - eg: "mini_service": {
+         "index_int(0)": "service_addr0",
+         "index_int(1)": "service_addr1"
+     }
+    - mini_service: dict
     '''
 
     @property
