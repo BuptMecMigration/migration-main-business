@@ -73,7 +73,7 @@ def user_migration_handle():
     if not returnField[0]:
         return "You service is not recorded"
     # 并且交给迁移转发模块进行处理，不在本地进行处理
-    if migration_sender(userId=userId, serviceId=serviceId, flag=0, ip=ip):
+    if not migration_sender(userId=userId, serviceId=serviceId, flag=0, ip=ip):
         return "Operate migration process fail!"
 
     return "Migration is started, new ip: %s, new port: %d" % (ip, port)

@@ -13,21 +13,19 @@
 TODO：采用tcp是否很上一个模块功能可以复用？采用rest如何读取全局url信息（采用之前的redis存储方案？）
 """
 
-import binascii
 import json
 import socket
 import socketserver
 import threading
 import time
 
-from common.code import TRIES_MAXIMUM
+from common.code import TRIES_MAXIMUM, MIGRATION_SERVICE_LISTEN_PORT, MIGRATION_SERVICE_LISTEN_IP
 from common.global_var import service_map
-from common.utils import log,log_error
+from common.utils import log
 from common.utils.redis_utils import RedisUtil
 from common.utils.serialize_utils import Serializer
 from migration.Message import Message, MsgFlag
 from models.user.user_info import UserService
-
 
 
 """
@@ -53,6 +51,7 @@ def migration_sender(userId: int, flag: int, serviceId: int, ip: str) -> bool:
     # 读取另一节点上注册过的处理接口（包括ip和端口）
     port = get_target_peer(ip)
     if port == -1:
+        log.logger.info('[服务器错误]: 服务器获取ip对应端口失败')
         return False
 
     # 调用TCP模块，转发用户后续请求
@@ -67,22 +66,22 @@ def migration_sender(userId: int, flag: int, serviceId: int, ip: str) -> bool:
 @param: None
 @return：Message
 """
-def migration_receiver(port: int):
+def migration_start_receiver(workers):
 
     def start_worker(workers, worker):
         log.logger.info('[运行时]: TCPServer已在本地: {} 开始监听'.format(port))
+        print('[运行时]: TCPServer已在本地: {} 开始监听'.format(port))
         workers.append(threading.Thread(target=worker, daemon=True))
         workers[-1].start()
 
-    # 将监听端口注册到某个地方，这个地方最好写成全局IP
-    workers = []
-    server = ThreadedTCPServer(('localhost', port), TCPHandler)
+    # 将监听端口注册全局IP
+    server = ThreadedTCPServer((MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT), TCPHandler)
     # 开始监听过程
     start_worker(workers, server.serve_forever)
     # 接收用户请求并进行处理
     # 在本地map调整相关的用户状态，并向业务模块转发相应的操作
-    # 这部分操作写在TCPserver的handler里
-    return
+    # 这部分操作写在TCPServer的handler里
+    return workers
 
 
 """
@@ -106,30 +105,15 @@ def port_send(data: object, flag:int, ip: str , port: int) -> bool:
             if flag == 1:
                 message = Message(MsgFlag.MsgUsDataRecover, data)
             with socket.create_connection((ip, port)) as s:
-                s.sendall(Serializer.pickle_serialize(message))
+                s.sendall(Serializer.encode_socket_data(message))
         except Exception as e:
             tries_left -= 1
             time.sleep(1)
+            log.logger.info('[服务器错误]: 发送用户数据错误，重试次数：{}，异常位置'.format(tries_left, e))
             if tries_left <= 0:
                 return False
         else:
             return True
-
-
-"""
-@function: 发送相关的请求进行关联
-@param: None
-@return: Msg
-"""
-def port_receive(req: bytes)-> object:
-    data = b''
-    # 前4 Bytes代表数据长度
-    msg_len = int(binascii.hexlify(req.recv(4) or b'\x00'), 16)
-    while msg_len > 0:
-        tdat = req.recv(1024)
-        data += tdat
-        msg_len -= len(tdat)
-    return Serializer.pickle_deserialize(data) if data else None
 
 
 """
@@ -161,6 +145,8 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     """
         the TCP Server class to support the data receive.
         the handler is the method we write to receive different type of data.
+        @param: server_address tuple (ip,address)
+        @param:
         author: jqliu_bupt@163.com
     """
     def __init__(self, server_address, RequestHandlerClass):
@@ -177,7 +163,9 @@ class TCPHandler(socketserver.BaseRequestHandler):
             message = Serializer.read_all_from_socket(self.request)
         except Exception as e:
             cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+            log.logger.error('[迁移错误]: 服务未注册，请注册过再使用')
             print("get exception from socket receive part: {} and time is {}".format(e, cur_time))
+
             return
 
         if not isinstance(message, Message):
@@ -189,6 +177,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
         if not isinstance(us, UserService):
             # 输出日志
+            log.logger.info('[迁移错误]: 用户所传数据类型')
             return
 
         if action == MsgFlag.MsgUsRecover:

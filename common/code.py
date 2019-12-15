@@ -21,7 +21,7 @@ CODE_MSG_MAP = {
 }
 
 # 全局migration receiver接收的监听端口
-MIGRATION_SERVICE_LISTEN_IP = 'localhost'
+MIGRATION_SERVICE_LISTEN_IP = '0.0.0.0'
 MIGRATION_SERVICE_LISTEN_PORT = 9900
 # tcp传输重试次数
 TRIES_MAXIMUM = 5
