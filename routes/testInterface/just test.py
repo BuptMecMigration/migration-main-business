@@ -14,6 +14,7 @@ if __name__ == '__main__':
     # print(mini_service["migration"][2])
     minServiceAddr = "http://47.103.27.246:5000/ui/test/function_4"
     us_data = {"test_string": "string add begin:"}
-    res = requests.post(minServiceAddr, json=us_data, )
+    res = requests.post(minServiceAddr, json=us_data)
     print(res.status_code)
     print(res.text)
+    print(res.raw.read())
