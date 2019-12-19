@@ -44,7 +44,7 @@ def test_business_func1():
 
 
 # test_function_2
-@test_interface.route('=/function_2', methods=['POST'])
+@test_interface.route('/function_2', methods=['POST'])
 def test_business_func2():
     data = request.get_json()
     data_str = data.get('test_string')

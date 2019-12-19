@@ -21,7 +21,7 @@ class compute_handler(object):
         print("begin compute")
 
         user_token, service_token = us.service_token.user_id, us.service_token.service_id
-        cls.pool.
+        #cls.pool.
         cls.pool.submit(cls.handel_service, (user_token, service_token))
    
     @classmethod

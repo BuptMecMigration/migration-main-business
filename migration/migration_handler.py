@@ -66,11 +66,14 @@ def migration_sender(userId: int, flag: int, serviceId: int, ip: str) -> bool:
 @param: None
 @return：Message
 """
-def migration_start_receiver(workers):
+def migration_start_receiver():
+
+    # 启动迁移部分监听的TCPServer功能
+    workers = []
 
     def start_worker(workers, worker):
-        log.logger.info('[运行时]: TCPServer已在本地: {} 开始监听'.format(port))
-        print('[运行时]: TCPServer已在本地: {} 开始监听'.format(port))
+        log.logger.info('[运行时]: TCPServer已在本地: {} 开始监听'.format(MIGRATION_SERVICE_LISTEN_PORT))
+        print('[运行时]: TCPServer已在本地: {} 开始监听'.format(MIGRATION_SERVICE_LISTEN_PORT))
         workers.append(threading.Thread(target=worker, daemon=True))
         workers[-1].start()
 
@@ -81,7 +84,7 @@ def migration_start_receiver(workers):
     # 接收用户请求并进行处理
     # 在本地map调整相关的用户状态，并向业务模块转发相应的操作
     # 这部分操作写在TCPServer的handler里
-    return workers
+    return  # workers
 
 
 """
