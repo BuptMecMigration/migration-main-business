@@ -30,12 +30,13 @@ class service_map(object):
 
     @classmethod
     def register_us_func(cls, fn):
+        print("register us func")
         cls.__us_func = fn
 
     @classmethod
     def register_migration_func(cls, fn):
 
-        print("register new func")
+        print("register migration func")
         cls.__mig_func = fn
 
     @classmethod
@@ -52,6 +53,7 @@ class service_map(object):
 
     @classmethod
     # 如果 us不在map中,返回false,us为空
+    #checked!
     def get_migration_service(cls, user_token: int, service_id: int) -> (bool, UserService):
         cls.__migration_lock.acquire()
         if user_token not in cls.__GLOBAL_MIGRATION_MAP:
@@ -62,12 +64,13 @@ class service_map(object):
             if service_id not in us_map:
                 cls.__migration_lock.release()
                 return False, None
-            us = cls.__GLOBAL_MIGRATION_MAP[service_id]
+            us = us_map[service_id]
             cls.__migration_lock.release()
             return True, us
 
     @classmethod
     # 如果 us不在map中,返回false,us为空
+    #checked!
     def get_user_service(cls, user_token: int, service_id: int) -> (bool, UserService):
         cls.__user_service_lock.acquire()
         if user_token not in cls.__GLOBAL_USER_SERVICE_MAP:
@@ -78,13 +81,13 @@ class service_map(object):
             if service_id not in us_map:
                 cls.__user_service_lock.release()
                 return False, None
-            us= cls.__GLOBAL_USER_SERVICE_MAP[service_id]
+            us= us_map[service_id]
             cls.__user_service_lock.release()
             return True, us
 
     @classmethod
     # 如果 us不在map中,返回false,us为空
-    def get_all_migration_service(cls, user_token: int) :
+    def get_all_migration_service(cls, user_token: int) ->map:
         cls.__migration_lock.acquire()
         if user_token not in cls.__GLOBAL_MIGRATION_MAP:
             cls.__migration_lock.release()
@@ -182,6 +185,7 @@ class service_map(object):
                 cls.__migration_lock.release()
                 return True
 
+    # checked!
     @classmethod
     def remove_user_service(cls, user_token: int,service_id:int) -> bool:
         cls.__user_service_lock.acquire()
