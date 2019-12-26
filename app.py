@@ -9,12 +9,8 @@ app = Flask(__name__)
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-    migration_start_receiver()
-=======
 
     # 注册flask路由
->>>>>>> dev
     routes.init_app(app)
     print(app.url_map)
 
