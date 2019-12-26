@@ -3,12 +3,20 @@ import threading
 from flask import Flask
 import routes
 from common.code import MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT
-from migration.migration_handler import TCPHandler, ThreadedTCPServer
+from migration.migration_handler import TCPHandler, ThreadedTCPServer, simple_server
 
 app = Flask(__name__)
 
 
 if __name__ == '__main__':
+
+    def flask_run():
+        app.run(host="0.0.0.0", port=5000, debug=True)
+        # app.run(host="0.0.0.0", port=5000)
+
+    def migration_server_run():
+        print("开始监听IP位置: {} 端口号: {}".format(MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT))
+        ThreadedTCPServer((MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT), TCPHandler).serve_forever()
 
     # 注册flask路由
     routes.init_app(app)
@@ -16,9 +24,8 @@ if __name__ == '__main__':
 
     # 多线程开启tcp server和flask功能
     workers = []
-    workers.append(threading.Thread(target=app.run(host="0.0.0.0", port=5000, debug=True)))
-    server = ThreadedTCPServer((MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT), TCPHandler)
-    workers.append(server.serve_forever())
+    # workers.append(threading.Thread(target=flask_run, daemon=True))
+    workers.append(threading.Thread(target=migration_server_run, daemon=True))
     # workers.append(threading.Thread(target=simple_server()))
 
     for w in workers:
@@ -26,12 +33,4 @@ if __name__ == '__main__':
     # for w in workers:
     #     w.join()
 
-    # 多进程开启server服务
-    # workers.append(Process(target=app.run(host="0.0.0.0", port=5000, debug=True), daemon=True))
-    # server = ThreadedTCPServer(('0.0.0.0', 9900), TCPHandler)
-    # workers.append(Process(target=server.serve_forever(), daemon=True))
-    # # workers.append(Process(target=app.run(host="0.0.0.0", port=5000, debug=True)))
-    # for w in workers:
-    #     w.start()
-    # for w in workers:
-    #     w.join()
+    flask_run()
