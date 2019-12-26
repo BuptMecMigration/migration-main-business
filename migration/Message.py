@@ -7,7 +7,7 @@ class MsgFlag:
     """
     MsgUsRecover = 0
     MsgUsDataRecover = 1
-    # 还可以扩展信息
+    # 可扩展信息
 
     num2flag = {
         '0': 'MsgUsRecover',

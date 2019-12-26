@@ -16,7 +16,6 @@ TODO：采用tcp是否很上一个模块功能可以复用？采用rest如何读
 import json
 import socket
 import socketserver
-import threading
 import time
 
 from common.code import TRIES_MAXIMUM, MIGRATION_SERVICE_LISTEN_PORT, MIGRATION_SERVICE_LISTEN_IP
@@ -66,22 +65,23 @@ def migration_sender(userId: int, flag: int, serviceId: int, ip: str) -> bool:
 @param: None
 @return：Message
 """
-def migration_start_receiver(workers):
-
-    def start_worker(workers, worker):
-        log.logger.info('[运行时]: TCPServer已在本地: {} 开始监听'.format(port))
-        print('[运行时]: TCPServer已在本地: {} 开始监听'.format(port))
-        workers.append(threading.Thread(target=worker, daemon=True))
-        workers[-1].start()
-
-    # 将监听端口注册全局IP
-    server = ThreadedTCPServer((MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT), TCPHandler)
-    # 开始监听过程
-    start_worker(workers, server.serve_forever)
-    # 接收用户请求并进行处理
-    # 在本地map调整相关的用户状态，并向业务模块转发相应的操作
-    # 这部分操作写在TCPServer的handler里
-    return workers
+# # 该方法已废弃
+# def migration_start_receiver(workers):
+#
+#     def add_tcp_worker(workers, worker):
+#         log.logger.info('[运行时]: TCPServer已在本地: {} 开始监听'.format(MIGRATION_SERVICE_LISTEN_PORT))
+#         print('[运行时]: TCPServer已在本地: {} 开始监听'.format(MIGRATION_SERVICE_LISTEN_PORT))
+#         workers.append(threading.Thread(target=worker, daemon=True))
+#         return workers
+#
+#     # 将监听端口注册全局IP
+#     server = ThreadedTCPServer((MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT), TCPHandler)
+#     # server = ThreadedTCPServer(('10.28.186.18', 8889), TCPHandler)
+#     # 开始监听过程
+#     # 接收用户请求并进行处理
+#     # 在本地map调整相关的用户状态，并向业务模块转发相应的操作
+#     # 这部分操作写在TCPServer的handler里
+#     return add_tcp_worker(workers, server.serve_forever)
 
 
 """
@@ -165,11 +165,12 @@ class TCPHandler(socketserver.BaseRequestHandler):
             cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
             log.logger.error('[迁移错误]: 服务未注册，请注册过再使用')
             print("get exception from socket receive part: {} and time is {}".format(e, cur_time))
-
             return
 
         if not isinstance(message, Message):
             # 输出日志
+            log.logger.error('[迁移错误]: 传输数据类型有误')
+            print("迁移数据类型错误，传输测到的数据类型为： {}".format(type(message)))
             return
 
         action = int(message.msg_flag)
@@ -177,18 +178,43 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
         if not isinstance(us, UserService):
             # 输出日志
-            log.logger.info('[迁移错误]: 用户所传数据类型')
+            log.logger.info('[迁移错误]: 用户所传数据类型逆序列化错误')
             return
 
         if action == MsgFlag.MsgUsRecover:
             # 处理us信息
-            service_map.set_user_service(us)
+            # service_map.set_user_service(us)
+
+            # 测试
+            print(us)
         if action == MsgFlag.MsgUsDataRecover:
             # 处理后续转发消息, 需要接口
-            service_map.set_user_service(us)
+            # service_map.set_user_service(us)
+
+            # 测试
+            print(us)
+
         # 关闭接口
         self.request.shutdown(2)
         self.request.close()
+
+def simple_server():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_address = (MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT)
+    sock.bind(server_address)
+    sock.listen(128)
+    print("监听端口{}开始".format(MIGRATION_SERVICE_LISTEN_PORT))
+    while True:
+        new_client_socket, new_client_addr = sock.accept()
+        # 接收浏览器请求
+        request = new_client_socket.recv(1024)
+        print(request)
+
+        respond = 'GET HTTP/1.1\r\n'
+        new_client_socket.send(respond.encode('utf=8'))
+        new_client_socket.close()
+
+    sock.close()
 
 
 if __name__ == '__main__':
