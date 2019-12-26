@@ -4,7 +4,7 @@ from flask import Flask
 import routes
 from common.code import MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT
 from migration.migration_handler import TCPHandler, ThreadedTCPServer, simple_server
-
+from routes.main.handler import compute_handler
 app = Flask(__name__)
 
 
@@ -28,6 +28,10 @@ if __name__ == '__main__':
     workers.append(threading.Thread(target=migration_server_run, daemon=True))
     # workers.append(threading.Thread(target=simple_server()))
 
+
+    # register_func of compute_handler
+    compute_handler.register_func()
+    
     for w in workers:
         w.start()
     for w in workers:
