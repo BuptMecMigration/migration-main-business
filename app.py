@@ -11,8 +11,8 @@ app = Flask(__name__)
 if __name__ == '__main__':
 
     def flask_run():
-        app.run(host="0.0.0.0", port=5000, debug=True)
-        # app.run(host="0.0.0.0", port=5000)
+        #app.run(host="0.0.0.0", port=5000, debug=True)
+        app.run(host="0.0.0.0", port=5000)
 
     def migration_server_run():
         print("开始监听IP位置: {} 端口号: {}".format(MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT))
@@ -24,13 +24,11 @@ if __name__ == '__main__':
 
     # 多线程开启tcp server和flask功能
     workers = []
-    # workers.append(threading.Thread(target=flask_run, daemon=True))
+    workers.append(threading.Thread(target=flask_run, daemon=True))
     workers.append(threading.Thread(target=migration_server_run, daemon=True))
     # workers.append(threading.Thread(target=simple_server()))
 
     for w in workers:
         w.start()
-    # for w in workers:
-    #     w.join()
-
-    flask_run()
+    for w in workers:
+        w.join()

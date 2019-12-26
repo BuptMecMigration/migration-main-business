@@ -23,12 +23,12 @@ def user_job_handle():
     # 记录入参
     serviceId = data.get('serviceID')
     user_ip = data.get('ip')
-    user_port = data('port')
-    req_data = data('req_data')
+    user_port = data.get('port')
+    req_data = data.get('req_data')
 
     # 生成userToken，分配id
     id = Token.gen_service_token()
-    user_token = UserToken(serviceId=serviceId, ip=user_ip, port=user_port, user_id=id)
+    user_token = UserToken(service_id=serviceId, ip=user_ip, port=user_port, user_id=id)
 
     # token存redis
     RedisUtil.set_redis_data(user_token.user_id, user_token)
@@ -36,15 +36,13 @@ def user_job_handle():
     # 根据serviceId获取redis中chainInfo并注入
     # 这里的chain_data应该对应内容为一个Chain_Info类
     chain_data = RedisUtil.get_redis_data("serviceId_%d" % serviceId)
-    chain_info = ChainInfo(chain_data["num"], chain_data["mini_service"])
+    # chain_info = ChainInfo(chain_data["num"], chain_data["mini_service"])
 
     # 初始化调用链状态
-    business_data = UserBusiness(False, 0, req_data)
+    business_data = UserBusiness(is_migration=False, offset=0, data=req_data)
 
     # 封装UserService
-    user_service = UserService(user_token=user_token)
-    user_service.set_migration_info(business_data)
-    user_service.set_chain_info(chain_data)
+    user_service = UserService(user_token=user_token, service_bus=business_data, service_chain=chain_data)
 
     # 这部分直接调用相关的map内置函数去处理对应的业务逻辑
     compute_handler.compute_us_func(user_service)
@@ -66,7 +64,7 @@ def user_migration_handle():
 
     # 修改redis中用户的ip及port信息
     token = RedisUtil.get_redis_data(userId)
-    RedisUtil.set_redis_data(userId, UserToken(user_id=userId, serviceId=token["serviceID"], ip=ip, port=port))
+    RedisUtil.set_redis_data(userId, UserToken(user_id=userId, service_id=token["serviceID"], ip=ip, port=port))
 
     # 后续迁移处理信息部分UserBusiness的flag都变成True
     returnField = service_map.get_user_service(userId, serviceId)
@@ -77,6 +75,25 @@ def user_migration_handle():
         return "Operate migration process fail!"
 
     return "Migration is started, new ip: %s, new port: %d" % (ip, port)
+
+# 接口：/user/getResult
+# 入参：userId, serviceId
+# 出参：返回data
+@user_interface.route('/user/getResult', methods=['POST'])
+def user_get_result():
+
+    data = request.get_json()
+    userId = data.get('userId')
+    serviceId = data.get('serviceId')
+
+    if not service_map.is_us_success(userId, serviceId):
+        return "业务处理失败"
+
+    msg = service_map.pop_success_user(userId, serviceId)
+
+    return msg
+
+
 
 
 # 接口：/admin/addService
