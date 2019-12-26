@@ -1,0 +1,6 @@
+2019-12-15 23:32:15,615 - /Users/lblade/migration/migration-main-business/migration/migration_handler.py[line:72] - INFO: [运行时]: TCPServer已在本地: 9900 开始监听
+2019-12-15 23:37:48,601 - /Users/lblade/migration/migration-main-business/migration/migration_handler.py[line:72] - INFO: [运行时]: TCPServer已在本地: 9900 开始监听
+2019-12-16 22:32:55,652 - /Users/lblade/migration/migration-main-business/migration/migration_handler.py[line:72] - INFO: [运行时]: TCPServer已在本地: 9900 开始监听
+2019-12-16 22:44:35,722 - /Users/lblade/migration/migration-main-business/migration/migration_handler.py[line:75] - INFO: [运行时]: TCPServer已在本地: 9900 开始监听
+2019-12-16 22:45:25,935 - /Users/lblade/migration/migration-main-business/migration/migration_handler.py[line:75] - INFO: [运行时]: TCPServer已在本地: 9900 开始监听
+2019-12-16 22:46:11,623 - /Users/lblade/migration/migration-main-business/migration/migration_handler.py[line:75] - INFO: [运行时]: TCPServer已在本地: 9900 开始监听

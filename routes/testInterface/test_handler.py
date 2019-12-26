@@ -53,7 +53,7 @@ def test_business_func2():
 
 
 # test_function_3
-@test_interface.route('=/function_3', methods=['POST'])
+@test_interface.route('/function_3', methods=['POST'])
 def test_business_func3():
     data = request.get_json()
     data_str = data.get('test_string')
@@ -62,7 +62,7 @@ def test_business_func3():
 
 
 # test_function_4
-@test_interface.route('=/function_4', methods=['POST'])
+@test_interface.route('/function_4', methods=['POST'])
 def test_business_func4():
     data = request.get_json()
     data_str = data.get('test_string')
@@ -71,7 +71,7 @@ def test_business_func4():
 
 
 # get_result_function
-@test_interface.route('=/get_function', methods=['POST'])
+@test_interface.route('/get_function', methods=['POST'])
 def get_function():
     # us =
     us = UserService()

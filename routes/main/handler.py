@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 class compute_handler(object):
 
-    pool = ThreadPoolExecutor(1024)
+    pool = ThreadPoolExecutor(max_workers=1024)
 
     @classmethod
     def compute_us_func(cls, us: UserService):
@@ -21,25 +21,25 @@ class compute_handler(object):
         print("begin compute")
 
         user_token, service_token = us.service_token.user_id, us.service_token.service_id
-        #cls.pool.
-        cls.pool.submit(cls.handel_service, (user_token, service_token))
+        cls.pool.submit(cls.handel_service, user_token, service_token)
    
     @classmethod
     def mig_func(cls, us: UserService):
-        print("add to pool")
-        cls.pool.submit(cls.handel_migration, (us))
+        print("add to migration pool")
+        cls.pool.submit(cls.handel_migration, us)
 
     @classmethod
     def register_func(cls):
         service_map.register_us_func(cls.compute_us_func)
         service_map.register_migration_func(cls.mig_func)
-        print("register success")
 
     @classmethod 
     def handel_migration(cls, us: UserService):
+        print("handel migration")
         migration_maintainer.add_in_migration_us(us)
 
     @classmethod
+    # checked!
     def handel_service(cls, user_token: int, service_token: int):
         # 从offset恢复对应的服务
         is_In_map, us = service_map.get_user_service(user_token, service_token)
@@ -49,19 +49,29 @@ class compute_handler(object):
 
         offset, chain_length = us.service_bus.chain_offset, us.service_chain.num
 
+        print("chain_length: ",chain_length)
+
+        print("get user_service",us.__dict__)
+
+        print("current offset is :",offset)
         for i in range(offset,
                        chain_length):
 
+            print("process sub-process: ",i)
             # 获取miniservice对应地址
             # 必须先处理完毕
             minServiceAddr, us_data = us.service_chain.mini_service[StringUtils.get_miniservice_key(i)], \
                                       us.service_bus.data
 
+            print("sub-process",i," minServiceAddr: ",minServiceAddr," data: ",us_data)
             res = requests.post(minServiceAddr, json=us_data)
+            print(res)
+            print(res.json())
 
             # 从json文件中中获取data传输过来的data
             if res.status_code == 200:
-                data = res.raw.read()
+                data = res.json()
+                print("the reviced data is ",data)
             if res.status_code != 200:
                 log.logger.warn("receive non-200 return without doing anything ")
                 # TODO re-try
@@ -70,6 +80,7 @@ class compute_handler(object):
             is_migration = migration_maintainer.is_us_in_migration(us.service_token.service_id)
             if is_migration:
                 # 需要处理migration逻辑,立即释放锁
+                print("need migration")
                 log.logger.warn("migration begins")
                 # Todo: 处理中断逻辑
                 return
