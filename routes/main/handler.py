@@ -49,21 +49,20 @@ class compute_handler(object):
 
         offset, chain_length = us.service_bus.chain_offset, us.service_chain.num
 
-        print("chain_length: ",chain_length)
+        print("chain_length: ", chain_length)
 
-        print("get user_service",us.__dict__)
+        print("get user_service", us.__dict__)
 
-        print("current offset is :",offset)
+        print("current offset is :", offset)
         for i in range(offset,
                        chain_length):
 
-            print("process sub-process: ",i)
+            print("process sub-process: ", i)
             # 获取miniservice对应地址
             # 必须先处理完毕
             minServiceAddr, us_data = us.service_chain.mini_service[StringUtils.get_miniservice_key(i)], \
                                       us.service_bus.data
-
-            print("sub-process",i," minServiceAddr: ",minServiceAddr," data: ",us_data)
+            print("sub-process", i, " minServiceAddr: ", minServiceAddr, " data: ", us_data)
             res = requests.post(minServiceAddr, json=us_data)
             print(res)
             print(res.json())
@@ -71,7 +70,7 @@ class compute_handler(object):
             # 从json文件中中获取data传输过来的data
             if res.status_code == 200:
                 data = res.json()
-                print("the reviced data is ",data)
+                print("the received data is ", data)
             if res.status_code != 200:
                 log.logger.warn("receive non-200 return without doing anything ")
                 # TODO re-try
@@ -90,30 +89,32 @@ class compute_handler(object):
             # 增加offset
             us.service_bus.chain_offset += 1
 
+        service_map.add_success_us(user_token, service_token)
+
 
 class migration_maintainer(object):
-    __lock=Lock()
+    __lock = Lock()
     # 由于service_id唯一,使用Service作为key你说那你的话不能 
     __US_STATUS_MAP = {}
 
     @classmethod 
-    def is_us_in_migration(cls,service_id:int):
+    def is_us_in_migration(cls, service_id: int):
         cls.__lock.acquire()
-        output=True if service_id in cls.__US_STATUS_MAP else False
+        output = True if service_id in cls.__US_STATUS_MAP else False
         cls.__lock.release()
         return output
 
     @classmethod
-    def add_in_migration_us(cls,us: UserService):
+    def add_in_migration_us(cls, us: UserService):
         cls.__lock.acquire()
-        us.service_bus.is_migration=True
-        cls.__US_STATUS_MAP[us.service_token.service_id]=us
+        us.service_bus.is_migration = True
+        cls.__US_STATUS_MAP[us.service_token.service_id] = us
         cls.__lock.release()
 
     @classmethod
-    def remove_us_by_service_id(cls,service_id: int):
+    def remove_us_by_service_id(cls, service_id: int):
         cls.__lock.acquire()
         if service_id in cls.__US_STATUS_MAP:
-            cls.__US_STATUS_MAP[service_id].service_bus.is_migration=False
+            cls.__US_STATUS_MAP[service_id].service_bus.is_migration = False
             del cls.__US_STATUS_MAP[service_id]
         cls.__lock.release()

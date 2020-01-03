@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 
 from common.utils.redis_utils import RedisUtil
 from models.user.user_info import UserService
@@ -40,7 +40,7 @@ def test_business_func1():
     data = request.get_json()
     data_str = data.get('test_string')
     data_str += "this_is_func1_part_"
-    return data_str
+    return jsonify("test_string", data_str)
 
 
 # test_function_2

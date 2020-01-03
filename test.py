@@ -23,7 +23,7 @@ def test_addr0():
 
 @app.route("/test_addr1",methods=["GET", "POST"])
 def test_addr1():
-    request.json["answer"] +=2
+    request.json["answer"] += 2
     return request.json
 
 @app.route("/")

@@ -81,7 +81,7 @@ class service_map(object):
             if service_id not in us_map:
                 cls.__user_service_lock.release()
                 return False, None
-            us= us_map[service_id]
+            us = us_map[service_id]
             cls.__user_service_lock.release()
             return True, us
 
@@ -147,7 +147,7 @@ class service_map(object):
         cls.__user_service_lock.acquire()
         if us.service_token.user_id in cls.__GLOBAL_USER_SERVICE_MAP:
             # 当前service_id已经存入,不能再存,返回false
-            if us.service_token.service_id in  cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id]:
+            if us.service_token.service_id in cls.__GLOBAL_USER_SERVICE_MAP[us.service_token.user_id]:
                 cls.__user_service_lock.release()
                 return False
             # 新存入一个,返回true
@@ -187,7 +187,7 @@ class service_map(object):
 
     # checked!
     @classmethod
-    def remove_user_service(cls, user_token: int,service_id:int) -> bool:
+    def o9iremove_user_service(cls, user_token: int,service_id:int) -> bool:
         cls.__user_service_lock.acquire()
         if user_token not in cls.__GLOBAL_USER_SERVICE_MAP:
             cls.__user_service_lock.release()
@@ -222,14 +222,14 @@ class service_map(object):
     # add_success_us moves a processed us from __GLOBAL_USER_SERVICE_MAP to __GLOBAL_SUCCESS_MAP
     @classmethod
     def add_success_us(cls, user_token:int, service_token:int)->bool:
-        got,us=cls.get_user_service(user_token, service_token)
+        got, us=cls.get_user_service(user_token, service_token)
         if not got:
             # cannot add if us is not in __GLOBAL_USER_SERVICE_MAP
             return False
         cls.__success_map_lock.acquire()
         if us.service_token.user_id in cls.__GLOBAL_SUCCESS_MAP:
             # 当前service_id已经存入,不能再存,返回false
-            if us.service_token.service_id in  cls.__GLOBAL_SUCCESS_MAP[us.service_token.user_id]:
+            if us.service_token.service_id in cls.__GLOBAL_SUCCESS_MAP[us.service_token.user_id]:
                 cls.__success_map_lock.release()
                 return False
             # 新存入一个,返回true
@@ -256,7 +256,7 @@ class service_map(object):
                 cls.__success_map_lock.release()
                 return False, None
                 
-            us= cls.__GLOBAL_SUCCESS_MAP[service_token]
+            us = cls.__GLOBAL_SUCCESS_MAP[user_token][service_token]
 
             # 一旦能取得返回数据(pop),删除对应元素
             del cls.__GLOBAL_SUCCESS_MAP[user_token][service_token]

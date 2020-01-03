@@ -45,7 +45,9 @@ def user_job_handle():
     user_service = UserService(user_token=user_token, service_bus=business_data, service_chain=chain_data)
 
     # 这部分直接调用相关的map内置函数去处理对应的业务逻辑
-    compute_handler.compute_us_func(user_service)
+    if not service_map.set_user_service(user_service):
+        return "该业务已经存在，业务异常"
+    # compute_handler.compute_us_func(user_service) 该业务已经直接启动
 
     return jsonify({"user_id": id, "redirect_result": "your target ip is: {}:{} now".format(user_ip, user_port)})
 
@@ -91,9 +93,7 @@ def user_get_result():
 
     msg = service_map.pop_success_user(userId, serviceId)
 
-    return msg
-
-
+    return msg[-1].service_bus.data
 
 
 # 接口：/admin/addService
