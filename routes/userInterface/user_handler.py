@@ -3,12 +3,10 @@ import requests
 
 from common.global_var import service_map
 from common.utils.redis_utils import RedisUtil
-from common.utils.serialize_utils import Serializer
 from common.utils.token_utils import Token
 from migration.migration_handler import migration_sender
 from models.business.chain_info import ChainInfo
 from models.user.user_info import UserToken, UserService, UserBusiness
-from routes.main.handler import compute_handler
 
 user_interface = Blueprint('user_interface', __name__)
 
@@ -69,9 +67,6 @@ def user_migration_handle():
     RedisUtil.set_redis_data(userId, UserToken(user_id=userId, service_id=token["serviceID"], ip=ip, port=port))
 
     # 后续迁移处理信息部分UserBusiness的flag都变成True
-    returnField = service_map.get_user_service(userId, serviceId)
-    if not returnField[0]:
-        return "You service is not recorded"
     # 并且交给迁移转发模块进行处理，不在本地进行处理
     if not migration_sender(userId=userId, serviceId=serviceId, flag=0, ip=ip):
         return "Operate migration process fail!"
@@ -92,7 +87,6 @@ def user_get_result():
         return "业务处理失败"
 
     msg = service_map.pop_success_user(userId, serviceId)
-
     return msg[-1].service_bus.data
 
 

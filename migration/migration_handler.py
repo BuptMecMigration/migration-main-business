@@ -61,30 +61,6 @@ def migration_sender(userId: int, flag: int, serviceId: int, ip: str) -> bool:
 
 
 """
-@function: 接收用户发送过来的后续请求，并再对业务模块进行调用进行处理过程
-@param: None
-@return：Message
-"""
-# # 该方法已废弃
-# def migration_start_receiver(workers):
-#
-#     def add_tcp_worker(workers, worker):
-#         log.logger.info('[运行时]: TCPServer已在本地: {} 开始监听'.format(MIGRATION_SERVICE_LISTEN_PORT))
-#         print('[运行时]: TCPServer已在本地: {} 开始监听'.format(MIGRATION_SERVICE_LISTEN_PORT))
-#         workers.append(threading.Thread(target=worker, daemon=True))
-#         return workers
-#
-#     # 将监听端口注册全局IP
-#     server = ThreadedTCPServer((MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT), TCPHandler)
-#     # server = ThreadedTCPServer(('10.28.186.18', 8889), TCPHandler)
-#     # 开始监听过程
-#     # 接收用户请求并进行处理
-#     # 在本地map调整相关的用户状态，并向业务模块转发相应的操作
-#     # 这部分操作写在TCPServer的handler里
-#     return add_tcp_worker(workers, server.serve_forever)
-
-
-"""
 @function: 发送相关的请求进行关联
 @param: None
 @return: Msg
@@ -186,6 +162,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             # service_map.set_user_service(us)
 
             # 测试
+            print("测试接收问题")
             print(us)
         if action == MsgFlag.MsgUsDataRecover:
             # 处理后续转发消息, 需要接口
@@ -195,8 +172,8 @@ class TCPHandler(socketserver.BaseRequestHandler):
             print(us)
 
         # 关闭接口
-        self.request.shutdown(2)
-        self.request.close()
+        # self.request.shutdown(2)
+        # self.request.close()
 
 def simple_server():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
