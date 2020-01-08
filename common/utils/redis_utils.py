@@ -19,6 +19,8 @@ class RedisUtil(object):
     @classmethod
     def get_redis_data(cls, key: str):
         data = cls.redis_conn.get(key)
+        if data is None:
+            return None
         return Serializer.pickle_deserialize(data)
 
     @classmethod
