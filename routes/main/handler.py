@@ -81,7 +81,8 @@ class compute_handler(object):
                 # 需要处理migration逻辑,立即释放锁
                 print("need migration")
                 log.logger.warn("migration begins")
-                # Todo: 处理中断逻辑
+                # 直接停止并将service_map里的数据删除
+                service_map.set_migration_service(us)
                 return
 
             # 更新data

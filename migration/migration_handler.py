@@ -46,6 +46,8 @@ def migration_sender(userId: int, flag: int, serviceId: int, ip: str) -> bool:
     us = return_field[1]
     service_map.set_user_service(return_field[1].setflag(True))
 
+    service_map.set_migration_service(us=us)
+
     # 读取另一节点上注册过的处理接口（包括ip和端口）
     port = get_target_peer(ip)
     if port == -1:
