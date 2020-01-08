@@ -3,7 +3,7 @@ import threading
 from flask import Flask
 import routes
 from common.code import MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT
-from migration.migration_handler import TCPHandler, ThreadedTCPServer, simple_server
+from migration.migration_handler import TCPHandler, ThreadedTCPServer, simple_server, add_server_address
 from routes.main.handler import compute_handler
 app = Flask(__name__)
 
@@ -12,6 +12,7 @@ if __name__ == '__main__':
 
     def flask_run():
         # app.run(host="0.0.0.0", port=5000, debug=True)
+        add_server_address(MIGRATION_SERVICE_LISTEN_PORT)
         app.run(host="0.0.0.0", port=5000)
 
     def migration_server_run():

@@ -1,7 +1,10 @@
 from flask import Blueprint, request, jsonify
 
 from common.utils.redis_utils import RedisUtil
-from models.user.user_info import UserService
+from common.utils.string_utils import StringUtils
+from migration.migration_handler import port_send
+from models.business.chain_info import ChainInfo
+from models.user.user_info import UserService, UserToken, UserBusiness
 
 test_interface = Blueprint('test_interface', __name__)
 
@@ -71,9 +74,20 @@ def test_business_func4():
 
 
 # get_result_function
-@test_interface.route('/get_function', methods=['POST'])
+@test_interface.route('/test_tcp_receiver', methods=['POST'])
 def get_function():
-    # us =
-    us = UserService()
-    return us.service_bus.data
+    data = request.get_json()
+    user_id = data.get('userId')
+    service_id = data.get('serviceId')
+
+    token = UserToken(ip="0", port=0, service_id=service_id, user_id=user_id)
+    bus = UserBusiness(is_migration=False, offset=0, data=None)
+    chain = ChainInfo(num=2, mini_service={
+        StringUtils.get_miniservice_key(0): "http://127.0.0.1:5000/test_addr0",
+        StringUtils.get_miniservice_key(1): "http://127.0.0.1:5000/test_addr1"})
+    us = UserService(user_token=token, service_bus=bus, service_chain=chain)
+
+    port_send(us, 0, '0.0.0.0', 9900)
+
+    return "发送成功"
 

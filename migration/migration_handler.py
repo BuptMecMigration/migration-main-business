@@ -39,7 +39,6 @@ def migration_sender(userId: int, flag: int, serviceId: int, ip: str) -> bool:
     # 处理用户全局map状态
     # 判断是否存在
     return_field = service_map.get_user_service(userId, serviceId)
-
     if not return_field[0]:
         # 输出错误日志
         log.logger.info('[访问错误]: 用户未注册，请注册节点后再进行迁移操作')
@@ -58,30 +57,6 @@ def migration_sender(userId: int, flag: int, serviceId: int, ip: str) -> bool:
         return False
 
     return True
-
-
-"""
-@function: 接收用户发送过来的后续请求，并再对业务模块进行调用进行处理过程
-@param: None
-@return：Message
-"""
-# # 该方法已废弃
-# def migration_start_receiver(workers):
-#
-#     def add_tcp_worker(workers, worker):
-#         log.logger.info('[运行时]: TCPServer已在本地: {} 开始监听'.format(MIGRATION_SERVICE_LISTEN_PORT))
-#         print('[运行时]: TCPServer已在本地: {} 开始监听'.format(MIGRATION_SERVICE_LISTEN_PORT))
-#         workers.append(threading.Thread(target=worker, daemon=True))
-#         return workers
-#
-#     # 将监听端口注册全局IP
-#     server = ThreadedTCPServer((MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT), TCPHandler)
-#     # server = ThreadedTCPServer(('10.28.186.18', 8889), TCPHandler)
-#     # 开始监听过程
-#     # 接收用户请求并进行处理
-#     # 在本地map调整相关的用户状态，并向业务模块转发相应的操作
-#     # 这部分操作写在TCPServer的handler里
-#     return add_tcp_worker(workers, server.serve_forever)
 
 
 """
@@ -134,11 +109,31 @@ def get_target_peer(ip: str) -> int:
 @param: 某server的ip和port
 @return: None
 """
-def add_server_address(ip: str, port: int):
+def add_server_address(port: int):
     peer_data = RedisUtil.get_redis_data("peers")
+    ip = get_host_ip()
+    if not peer_data:
+        init_data = {ip: port}
+        RedisUtil.set_redis_data("peers", json.dumps(init_data))
+        return
     dict = json.loads(peer_data)
     dict[ip] = port
     RedisUtil.set_redis_data("peers", json.dumps(dict))
+
+
+"""
+获取本机IP
+"""
+def get_host_ip():
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    finally:
+        s.close()
+
+    return ip
 
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
@@ -186,7 +181,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
             # service_map.set_user_service(us)
 
             # 测试
+            print("测试接收问题")
             print(us)
+            # 将us信息恢复到对应的map中
+            us.service_bus.is_migration = False
+            service_map.set_migration_service(us=us)  # 存疑
         if action == MsgFlag.MsgUsDataRecover:
             # 处理后续转发消息, 需要接口
             # service_map.set_user_service(us)
@@ -195,8 +194,8 @@ class TCPHandler(socketserver.BaseRequestHandler):
             print(us)
 
         # 关闭接口
-        self.request.shutdown(2)
-        self.request.close()
+        # self.request.shutdown(2)
+        # self.request.close()
 
 def simple_server():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -218,6 +217,12 @@ def simple_server():
 
 
 if __name__ == '__main__':
-    sstr = "10.1.1.1:9900,10.2.2.2:9901"
-    peer = sstr.split(",")
-    print(peer)
+    # sstr = "10.1.1.1:9900,10.2.2.2:9901"
+    # peer = sstr.split(",")
+    # print(peer)
+    #
+    # data = {"10.1.1.1": 123}
+    # print(data)
+    # data["0.0.0.0"] = 8880
+    # print(data)
+    print(get_host_ip())
