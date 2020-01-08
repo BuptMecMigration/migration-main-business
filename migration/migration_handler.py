@@ -116,11 +116,10 @@ def add_server_address(port: int):
     ip = get_host_ip()
     if not peer_data:
         init_data = {ip: port}
-        RedisUtil.set_redis_data("peers", json.dumps(init_data))
+        RedisUtil.set_redis_data("peers", init_data)
         return
-    dict = json.loads(peer_data)
-    dict[ip] = port
-    RedisUtil.set_redis_data("peers", json.dumps(dict))
+    peer_data[ip] = port
+    RedisUtil.set_redis_data("peers", peer_data)
 
 
 """
