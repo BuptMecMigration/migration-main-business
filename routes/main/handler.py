@@ -80,6 +80,7 @@ class compute_handler(object):
             is_migration = (service_map.get_migration_service(user_token, service_token)[0])
             if is_migration:
                 migration_data = service_map.get_migration_service(user_token, service_token)[1]
+                migration_data.service_bus.chain_offset = us.service_bus.chain_offset
                 # 需要处理migration逻辑,立即释放锁
                 print("handler[82]: need migration")
                 log.logger.warn("migration begins")
