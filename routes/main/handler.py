@@ -77,20 +77,21 @@ class compute_handler(object):
                 # TODO re-try
                 return
 
-            is_migration = migration_maintainer.is_us_in_migration(us.service_token.service_id)
+            is_migration = (service_map.get_migration_service(user_token, service_token)[0])
             if is_migration:
+                migration_data = service_map.get_migration_service(user_token, service_token)[1]
                 # 需要处理migration逻辑,立即释放锁
                 print("handler[82]: need migration")
                 log.logger.warn("migration begins")
                 # 直接停止并将service_map里的数据删除
                 # 读取另一节点上注册过的处理接口（包括ip和端口）
-                port = get_target_peer(us.service_bus.target_ip)
+                port = get_target_peer(migration_data.service_bus.target_ip)
                 if port == -1:
                     log.logger.info('[服务器错误]: 服务器获取ip对应端口失败')
                     return False
-                print("get target port {} for ip: {}".format(port, us.service_bus.target_ip))
+                print("get target port {} for ip: {}".format(port, migration_data.service_bus.target_ip))
                 # 调用TCP模块，转发用户后续请求
-                if not port_send(us, us.service_bus.migration_flag,us.service_bus.target_ip, port):
+                if not port_send(us, migration_data.service_bus.migration_flag, migration_data.service_bus.target_ip, port):
                     return False
                 service_map.remove_migration_service(user_token, service_token)
                 return
@@ -109,9 +110,9 @@ class migration_maintainer(object):
     __US_STATUS_MAP = {}
 
     @classmethod 
-    def is_us_in_migration(cls, service_id: int):
+    def is_us_in_migration(cls, user_token: int):
         cls.__lock.acquire()
-        output = True if service_id in cls.__US_STATUS_MAP else False
+        output = True if user_token in cls.__US_STATUS_MAP else False
         cls.__lock.release()
         return output
 

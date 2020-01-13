@@ -47,11 +47,9 @@ def migration_sender(userId: int, flag: int, serviceId: int, ip: str) -> bool:
 
     us.service_bus.is_migration = True
     us.service_bus.target_ip = ip
-    us.service_bus.migration_flag = 0
-    service_map.set_user_service(us)
-
-    # @TODO
-    # service_map.set_migration_service(us=us)
+    us.service_bus.migration_flag = flag
+    service_map.set_migration_service(us)
+    service_map.remove_user_service(userId, serviceId)
 
     return True
 
