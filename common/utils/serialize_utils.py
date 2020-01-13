@@ -87,7 +87,7 @@ class Serializer(object):
 
     @classmethod
     def pickle_deserialize(cls, data: bytes) -> object:
-        return pickle.loads(data)
+        return cloudpickle.loads(data)
 
     @classmethod
     def encode_socket_data(cls, data: object) -> bytes:

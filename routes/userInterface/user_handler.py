@@ -60,18 +60,21 @@ def user_migration_handle():
     userId = data.get('userId')
     serviceId = data.get('serviceId')
     ip = data.get('ip')
-    port = data.get('port')
 
     # 修改redis中用户的ip及port信息
     token = RedisUtil.get_redis_data(userId)
-    RedisUtil.set_redis_data(userId, UserToken(user_id=userId, service_id=token["serviceID"], ip=ip, port=port))
+    RedisUtil.set_redis_data(userId, UserToken(user_id=userId,
+                                               service_id=token.service_id,
+                                               ip=token.addr["user_ip"],
+                                               port=token.addr["user_port"]))
 
     # 后续迁移处理信息部分UserBusiness的flag都变成True
     # 并且交给迁移转发模块进行处理，不在本地进行处理
     if not migration_sender(userId=userId, serviceId=serviceId, flag=0, ip=ip):
         return "Operate migration process fail!"
 
-    return "Migration is started, new ip: %s, new port: %d" % (ip, port)
+    return "Migration is started, new ip: %s" % ip
+
 
 # 接口：/user/getResult
 # 入参：userId, serviceId
@@ -106,3 +109,4 @@ def admin_add_service():
     RedisUtil.set_redis_data("serviceId_%d" % serviceId, new_chain_info)
 
     return "service: %d is added now" % serviceId
+

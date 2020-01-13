@@ -187,7 +187,7 @@ class service_map(object):
 
     # checked!
     @classmethod
-    def o9iremove_user_service(cls, user_token: int,service_id:int) -> bool:
+    def remove_user_service(cls, user_token: int,service_id:int) -> bool:
         cls.__user_service_lock.acquire()
         if user_token not in cls.__GLOBAL_USER_SERVICE_MAP:
             cls.__user_service_lock.release()

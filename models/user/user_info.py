@@ -28,16 +28,19 @@ class UserToken(object):
 
 class UserBusiness(object):
 
-    '''
-     调用链相关信息
+    """
+    调用链相关信息
     is_migration: bool   ->迁移字段
+    target_ip: int    ->迁移目的点IP
     chain_offset: int   ->调用链位置
     data: str   ->传输数据
     mig_begin: float  -> 迁移时间戳
-    '''
+    """
 
-    def __init__(self, *, is_migration, offset, data) -> None:
+    def __init__(self, *, is_migration, target_ip=None, migration_flag=None, offset, data) -> None:
         self.is_migration = is_migration
+        self.target_ip = target_ip
+        self.migration_flag = migration_flag
         self.chain_offset = offset
         self.data = data
 

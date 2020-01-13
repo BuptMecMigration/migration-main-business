@@ -1,6 +1,7 @@
 from flask import request
 import requests
 
+from migration.migration_handler import get_target_peer, port_send
 from models.business.chain_info import *
 from models.user.user_info import *
 
@@ -62,7 +63,7 @@ class compute_handler(object):
             # 必须先处理完毕
             minServiceAddr, us_data = us.service_chain.mini_service[StringUtils.get_miniservice_key(i)], \
                                       us.service_bus.data
-            print("sub-process", i, " minServiceAddr: ", minServiceAddr, " data: ", us_data)
+            print("sub-process", i, " minServiceAddr:", minServiceAddr, " data: ", us_data)
             res = requests.post(minServiceAddr, json=us_data)
             print(res)
             print(res.json())
@@ -79,10 +80,19 @@ class compute_handler(object):
             is_migration = migration_maintainer.is_us_in_migration(us.service_token.service_id)
             if is_migration:
                 # 需要处理migration逻辑,立即释放锁
-                print("need migration")
+                print("handler[82]: need migration")
                 log.logger.warn("migration begins")
                 # 直接停止并将service_map里的数据删除
-                service_map.set_migration_service(us)
+                # 读取另一节点上注册过的处理接口（包括ip和端口）
+                port = get_target_peer(us.service_bus.target_ip)
+                if port == -1:
+                    log.logger.info('[服务器错误]: 服务器获取ip对应端口失败')
+                    return False
+                print("get target port {} for ip: {}".format(port, us.service_bus.target_ip))
+                # 调用TCP模块，转发用户后续请求
+                if not port_send(us, us.service_bus.migration_flag,us.service_bus.target_ip, port):
+                    return False
+                service_map.remove_migration_service(user_token, service_token)
                 return
 
             # 更新data

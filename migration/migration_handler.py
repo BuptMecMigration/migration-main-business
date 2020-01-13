@@ -44,26 +44,21 @@ def migration_sender(userId: int, flag: int, serviceId: int, ip: str) -> bool:
         log.logger.info('[访问错误]: 用户未注册，请注册节点后再进行迁移操作')
         return False
     us = return_field[1]
-    service_map.set_user_service(return_field[1].setflag(True))
 
-    service_map.set_migration_service(us=us)
+    us.service_bus.is_migration = True
+    us.service_bus.target_ip = ip
+    us.service_bus.migration_flag = 0
+    service_map.set_user_service(us)
 
-    # 读取另一节点上注册过的处理接口（包括ip和端口）
-    port = get_target_peer(ip)
-    if port == -1:
-        log.logger.info('[服务器错误]: 服务器获取ip对应端口失败')
-        return False
-
-    # 调用TCP模块，转发用户后续请求
-    if not port_send(us, flag, ip, port):
-        return False
+    # @TODO
+    # service_map.set_migration_service(us=us)
 
     return True
 
 
 """
 @function: 发送相关的请求进行关联
-@param: None
+@param: data 为发送数据，flag为发送数据的类型，ip为目的节点的IP
 @return: Msg
 """
 def port_send(data: object, flag:int, ip: str , port: int) -> bool:
@@ -99,10 +94,10 @@ def port_send(data: object, flag:int, ip: str , port: int) -> bool:
 @return: (ip, port)
 """
 def get_target_peer(ip: str) -> int:
-    peers = json.loads(RedisUtil.get_redis_data("peers"))
-    for peer_ip in peers.key():
+    peers = RedisUtil.get_redis_data("peers")
+    for peer_ip, peer_port in peers.items():
         if peer_ip == ip:
-            return peers[peer_ip]
+            return peer_port
     return -1
 
 
@@ -186,7 +181,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             print(us)
             # 将us信息恢复到对应的map中
             us.service_bus.is_migration = False
-            service_map.set_migration_service(us=us)  # 存疑
+            service_map.set_user_service(us=us)  # 存疑
         if action == MsgFlag.MsgUsDataRecover:
             # 处理后续转发消息, 需要接口
             # service_map.set_user_service(us)

@@ -2,7 +2,7 @@ import threading
 
 from flask import Flask
 import routes
-from common.code import MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT, SERVER_PORT
+from common.code import MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT, SERVER_PORT, SERVER_IP
 from migration.migration_handler import TCPHandler, ThreadedTCPServer, add_server_address
 from routes.main.handler import compute_handler
 app = Flask(__name__)
@@ -13,7 +13,7 @@ if __name__ == '__main__':
     def flask_run():
         # app.run(host="0.0.0.0", port=5000, debug=True)
         add_server_address(MIGRATION_SERVICE_LISTEN_PORT)
-        app.run(host="0.0.0.0", port=SERVER_PORT)
+        app.run(host=SERVER_IP, port=SERVER_PORT)
 
     def migration_server_run():
         print("开始监听IP位置: {} 端口号: {}".format(MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT))
