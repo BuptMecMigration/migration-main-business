@@ -91,7 +91,10 @@ class compute_handler(object):
                     return False
                 print("get target port {} for ip: {}".format(port, migration_data.service_bus.target_ip))
                 # 调用TCP模块，转发用户后续请求
-                if not port_send(us, migration_data.service_bus.migration_flag, migration_data.service_bus.target_ip, port):
+                if not port_send(migration_data,
+                                 migration_data.service_bus.migration_flag,
+                                 migration_data.service_bus.target_ip,
+                                 port):
                     return False
                 service_map.remove_migration_service(user_token, service_token)
                 return
