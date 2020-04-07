@@ -65,8 +65,6 @@ class compute_handler(object):
                                       us.service_bus.data
             print("sub-process", i, " minServiceAddr:", minServiceAddr, " data: ", us_data)
             res = requests.post(minServiceAddr, json=us_data)
-            print(res)
-            print(res.json())
 
             # 从json文件中中获取data传输过来的data
             if res.status_code == 200:
@@ -82,11 +80,11 @@ class compute_handler(object):
                 migration_data = service_map.get_migration_service(user_token, service_token)[1]
                 migration_data.service_bus.chain_offset = us.service_bus.chain_offset
                 # 需要处理migration逻辑,立即释放锁
-                print("handler[82]: need migration")
                 log.logger.warn("migration begins")
                 # 直接停止并将service_map里的数据删除
                 # 读取另一节点上注册过的处理接口（包括ip和端口）
                 port = get_target_peer(migration_data.service_bus.target_ip)
+                print("port: %d" % port)
                 if port == -1:
                     log.logger.info('[服务器错误]: 服务器获取ip对应端口失败')
                     return False
@@ -105,6 +103,7 @@ class compute_handler(object):
             # 增加offset
             us.service_bus.chain_offset += 1
 
+        print("process done!")
         service_map.add_success_us(user_token, service_token)
 
 

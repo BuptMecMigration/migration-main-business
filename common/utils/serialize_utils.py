@@ -83,7 +83,8 @@ class Serializer(object):
         """use pickle way to serialize the data"""
         # 后续代码可以抽离出来再次重用
         # https://github.com/cloudpipe/cloudpickle
-        return cloudpickle.dumps(data)
+        # return cloudpickle.dumps(data) 这个根据版本不同而改变
+        return cloudpickle.dumps(data, protocol=3)
 
     @classmethod
     def pickle_deserialize(cls, data: bytes) -> object:
