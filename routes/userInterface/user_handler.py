@@ -1,6 +1,7 @@
 from flask import jsonify, Blueprint, request
-import requests
+from pandas._libs import json
 
+from common.code import ALLOWED_EXTENSIONS
 from common.global_var import service_map
 from common.utils.redis_utils import RedisUtil
 from common.utils.token_utils import Token
@@ -93,6 +94,62 @@ def user_get_result():
     return msg[-1].service_bus.data
 
 
+# 接口：/user/sendFile
+# 入参：file
+# 出参：上传文件是否成功的json标识
+@user_interface.route('/user/uploadFile', methods=['POST'], strict_slashes=False)
+def api_upload():
+
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return "No file field in the request!"
+        f = request.files['file']  # 从表单的file字段获取文件，file为该表单的name值
+        if f:
+            fileName = f.filename
+            if fileName == '' or not allowed_file(fileName):
+                print("no such named files\n")
+                return json.dumps({'success': False}), 404
+            else:
+                fileHandle = f.read()
+                # 获取部分用户信息
+                data = request.get_json()
+                # 记录入参
+                serviceId = data.get('serviceID')
+                user_ip = data.get('ip')
+                user_port = data.get('port')
+                # 生成userToken，分配id
+                id = Token.gen_service_token()
+                user_token = UserToken(service_id=serviceId, ip=user_ip, port=user_port, user_id=id)
+
+                # token存redis
+                RedisUtil.set_redis_data(user_token.user_id, user_token)
+
+                # 根据serviceId获取redis中chainInfo并注入
+                # 这里的chain_data应该对应内容为一个Chain_Info类
+                chain_data = RedisUtil.get_redis_data("serviceId_%d" % serviceId)
+                # chain_info = ChainInfo(chain_data["num"], chain_data["mini_service"])
+
+                # 初始化调用链状态
+                business_data = UserBusiness(is_migration=False, offset=0, data=fileHandle)
+
+                # 封装UserService
+                user_service = UserService(user_token=user_token, service_bus=business_data, service_chain=chain_data)
+
+                # 这部分直接调用相关的map内置函数去处理对应的业务逻辑
+                if not service_map.set_user_service(user_service):
+                    return "该业务已经存在，业务异常"
+
+                print("read success!\n")
+                return json.dumps({'success': True, "user_id": id}), 200
+
+    return "Please use Post Method to upload."
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 # 接口：/admin/addService
 # 入参：serviceId, num, mini_service
 # 出参：Flag
@@ -109,4 +166,6 @@ def admin_add_service():
     RedisUtil.set_redis_data("serviceId_%d" % serviceId, new_chain_info)
 
     return "service: %d is added now" % serviceId
+
+
 

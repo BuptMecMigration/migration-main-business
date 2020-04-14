@@ -24,7 +24,7 @@ if __name__ == '__main__':
     print(app.url_map)
 
     # 多线程开启tcp server和flask功能
-    workers = [ ]
+    workers = []
     workers.append(threading.Thread(target=flask_run, daemon=True))
     workers.append(threading.Thread(target=migration_server_run, daemon=True))
     # workers.append(threading.Thread(target=simple_server()))

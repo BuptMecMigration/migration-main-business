@@ -28,3 +28,6 @@ SERVER_IP = '127.0.0.1'
 SERVER_PORT = 5002
 # tcp传输重试次数
 TRIES_MAXIMUM = 5
+
+# 允许上传的文件类型
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
