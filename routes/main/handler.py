@@ -69,7 +69,7 @@ class compute_handler(object):
             # 从json文件中中获取data传输过来的data
             if res.status_code == 200:
                 data = res.json()
-                print("the received data is ", data)
+                # print("the received data is ", data)
             if res.status_code != 200:
                 log.logger.warn("receive non-200 return without doing anything ")
                 # TODO re-try
