@@ -110,13 +110,11 @@ def api_upload():
                 print("no such named files\n")
                 return json.dumps({'success': False}), 404
             else:
-                fileHandle = f.read()
-                # 获取部分用户信息
-                data = request.get_json()
+                fileHandle = {"process_file": f.read().decode('utf-8', 'ignore')}
                 # 记录入参
-                serviceId = data.get('serviceID')
-                user_ip = data.get('ip')
-                user_port = data.get('port')
+                serviceId = int(request.form['serviceID'])
+                user_ip = request.form['ip']
+                user_port = request.form['port']
                 # 生成userToken，分配id
                 id = Token.gen_service_token()
                 user_token = UserToken(service_id=serviceId, ip=user_ip, port=user_port, user_id=id)

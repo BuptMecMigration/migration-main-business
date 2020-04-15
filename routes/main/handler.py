@@ -64,11 +64,13 @@ class compute_handler(object):
             minServiceAddr, us_data = us.service_chain.mini_service[StringUtils.get_miniservice_key(i)], \
                                       us.service_bus.data
             print("sub-process", i, " minServiceAddr:", minServiceAddr, " data: ", us_data)
+
             res = requests.post(minServiceAddr, json=us_data)
 
             # 从json文件中中获取data传输过来的data
             if res.status_code == 200:
                 data = res.json()
+                # print(bytes(data["process_file"], encoding='utf-8'))
                 # print("the received data is ", data)
             if res.status_code != 200:
                 log.logger.warn("receive non-200 return without doing anything ")
