@@ -1,6 +1,7 @@
 from flask import request
 import requests
 
+from common.utils.logger_utils import print2file
 from migration.migration_handler import get_target_peer, port_send
 from models.business.chain_info import *
 from models.user.user_info import *
@@ -52,21 +53,26 @@ class compute_handler(object):
 
         print("chain_length: ", chain_length)
 
-        print("get user_service", us.__dict__)
-
+        # print("get user_service", us.__dict__)
+        # print2file("point")
         print("current offset is :", offset)
         for i in range(offset,
                        chain_length):
-
             print("process sub-process: ", i)
             # 获取miniservice对应地址
             # 必须先处理完毕
             minServiceAddr, us_data = us.service_chain.mini_service[StringUtils.get_miniservice_key(i)], \
                                       us.service_bus.data
-            print("sub-process", i, " minServiceAddr:", minServiceAddr, " data: ", us_data)
+            # print("sub-process", i, " minServiceAddr:", minServiceAddr, " data: ", us_data)
+            print("sub-process", i, " minServiceAddr:", minServiceAddr)
 
+            # print2file("point-2")
+            # print2file("point-1: type:{} len:{}".format(type(us_data), us_data.keys()))
+            # print2file(len(us_data["process_file"]))
+            print2file("point-2-1")
+            # print2file(us_data)
             res = requests.post(minServiceAddr, json=us_data)
-
+            print2file("point-3")
             # 从json文件中中获取data传输过来的data
             if res.status_code == 200:
                 data = res.json()
@@ -78,6 +84,7 @@ class compute_handler(object):
                 return
 
             is_migration = (service_map.get_migration_service(user_token, service_token)[0])
+            # print2file("point-6 {}".format(is_migration))
             if is_migration:
                 migration_data = service_map.get_migration_service(user_token, service_token)[1]
                 migration_data.service_bus.chain_offset = us.service_bus.chain_offset
@@ -91,6 +98,7 @@ class compute_handler(object):
                     log.logger.info('[服务器错误]: 服务器获取ip对应端口失败')
                     return False
                 print("get target port {} for ip: {}".format(port, migration_data.service_bus.target_ip))
+                print2file("start")
                 # 调用TCP模块，转发用户后续请求
                 if not port_send(migration_data,
                                  migration_data.service_bus.migration_flag,
@@ -100,6 +108,7 @@ class compute_handler(object):
                 service_map.remove_migration_service(user_token, service_token)
                 return
 
+            # print2file("point-4")
             # 更新data
             us.service_bus.data = data
             # 增加offset

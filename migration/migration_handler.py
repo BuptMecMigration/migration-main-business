@@ -17,6 +17,8 @@ import json
 import socket
 import socketserver
 import time
+import datetime
+from common.utils.logger_utils import print2file
 
 from common.code import TRIES_MAXIMUM, MIGRATION_SERVICE_LISTEN_PORT, MIGRATION_SERVICE_LISTEN_IP
 from common.global_var import service_map
@@ -75,7 +77,8 @@ def port_send(data: object, flag:int, ip: str , port: int) -> bool:
             if flag == 1:
                 message = Message(MsgFlag.MsgUsDataRecover, data)
             with socket.create_connection((ip, port)) as s:
-                s.sendall(Serializer.encode_socket_data(message))
+                data = Serializer.encode_socket_data(message)
+                s.sendall(data)
         except Exception as e:
             tries_left -= 1
             time.sleep(1)
@@ -176,10 +179,13 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
             # 测试
             print("测试接收问题")
-            print(us)
+            # print(us)
             # 将us信息恢复到对应的map中
             us.service_bus.is_migration = False
             service_map.set_user_service(us=us)  # 存疑
+            end_time = "finish migration datatime: {} timestamp: {}".format(datetime.datetime.now(), time.time())
+            f = open("/root/migration_time.txt", "a+")
+            f.writelines(end_time + "\n")
         if action == MsgFlag.MsgUsDataRecover:
             # 处理后续转发消息, 需要接口
             # service_map.set_user_service(us)

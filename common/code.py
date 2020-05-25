@@ -21,13 +21,18 @@ CODE_MSG_MAP = {
 }
 
 # 全局migration receiver接收的监听端口
-MIGRATION_SERVICE_LISTEN_IP = '127.0.0.1'
-MIGRATION_SERVICE_LISTEN_PORT = 9902
+# MIGRATION_SERVICE_LISTEN_IP = '127.0.0.1'
+MIGRATION_SERVICE_LISTEN_IP = '0.0.0.0'
+MIGRATION_SERVICE_LISTEN_PORT = 9901
 # 全局flask服务运行IP和端口
-SERVER_IP = '127.0.0.1'
-SERVER_PORT = 5002
+# SERVER_IP = '127.0.0.1'
+SERVER_IP = '0.0.0.0'
+SERVER_PORT = 5001
 # tcp传输重试次数
 TRIES_MAXIMUM = 5
+
+# 输出日志的时间
+MIGRATION_TIME_RECORD_PATH = "/root/migration_time.txt"
 
 # 允许上传的文件类型
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}

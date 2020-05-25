@@ -1,5 +1,8 @@
 import logging
 from logging import handlers
+import time
+import datetime
+from common.code import MIGRATION_TIME_RECORD_PATH
 
 # logging.basicConfig(level=logging.INFO,
 #                     # filename='runtime.log',  # 写入的文件路径
@@ -36,5 +39,10 @@ class Logger(object):
         self.logger.addHandler(sh)  # 把对象加到logger里
         self.logger.addHandler(th)
 
-
+# 输出日志
+def print2file(prefix: str):
+    record_time =  prefix + " migration datatime: {} timestamp: {}".format(datetime.datetime.now(), time.time())
+    f = open(MIGRATION_TIME_RECORD_PATH, "a+")
+    f.writelines(record_time + "\n")
+    f.close()
 

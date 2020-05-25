@@ -16,7 +16,7 @@ if __name__ == '__main__':
         app.run(host=SERVER_IP, port=SERVER_PORT)
 
     def migration_server_run():
-        print("开始监听IP位置: {} 端口号: {}".format(MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT))
+        print("start to listen on {} IP: {}".format(MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT))
         ThreadedTCPServer((MIGRATION_SERVICE_LISTEN_IP, MIGRATION_SERVICE_LISTEN_PORT), TCPHandler).serve_forever()
 
     # 注册flask路由
